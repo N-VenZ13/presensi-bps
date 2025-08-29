@@ -75,7 +75,7 @@
                 </thead>
                 <tbody>
                     <?php
-                        $base_sql = "SELECT a.*, m.nama, m.universitas, DAYNAME(a.tanggal) as hari, 
+                        $base_sql = "SELECT a.*, m.nama, m.nama_instansi_asal, DAYNAME(a.tanggal) as hari, 
                                      CASE a.status 
                                          WHEN 1 THEN 'Hadir' 
                                          WHEN 2 THEN 'Izin' 
@@ -126,7 +126,7 @@
                         <td><?php echo $no; ?></td>
                         <td>
                             <strong><?php echo htmlspecialchars($data['nama']); ?></strong><br>
-                            <small class="text-muted"><?php echo htmlspecialchars($data['universitas']); ?></small>
+                            <small class="text-muted"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></small>
                         </td>
                         <td><?php echo htmlspecialchars($data['status_text']); ?></td>
                         <td><?php echo htmlspecialchars($data['waktu']); ?></td>

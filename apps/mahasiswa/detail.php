@@ -18,8 +18,8 @@
             <td width="75%">: <?php echo $data['nim'];?></td>
         </tr>
         <tr>
-            <td>Universitas</td>
-            <td width="75%">: <?php echo $data['universitas'];?></td>
+            <td>Asal Instansi</td>
+            <td width="75%">: <?php echo $data['nama_instansi_asal'];?></td>
         </tr>
         <tr>
             <td>Jurusan</td>

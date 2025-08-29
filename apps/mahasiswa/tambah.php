@@ -14,7 +14,7 @@ if (isset($_POST['tambah_mahasiswa'])) {
 
     // [DIUBAH] Mengambil data dengan pengamanan dasar
     $nama = htmlspecialchars($_POST["nama"]);
-    $universitas = htmlspecialchars($_POST["universitas"]);
+    $nama_instansi_asal = htmlspecialchars($_POST["nama_instansi_asal"]);
     $jurusan = htmlspecialchars($_POST["jurusan"]);
     $nim = htmlspecialchars($_POST["nim"]);
     $mulai_magang = $_POST["mulai_magang"];
@@ -50,9 +50,9 @@ if (isset($_POST['tambah_mahasiswa'])) {
     }
 
     // [PERBAIKAN KEAMANAN] Insert ke tbl_mahasiswa menggunakan prepared statement
-    $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, universitas, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt_mahasiswa = mysqli_prepare($kon, $sql_mahasiswa);
-    mysqli_stmt_bind_param($stmt_mahasiswa, "ssssssssss", $kode_mahasiswa, $nama, $universitas, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final);
+    mysqli_stmt_bind_param($stmt_mahasiswa, "ssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final);
     $simpan_mahasiswa = mysqli_stmt_execute($stmt_mahasiswa);
 
     // Finalisasi Transaksi
@@ -81,8 +81,8 @@ if (isset($_POST['tambah_mahasiswa'])) {
             <input type="text" name="nim" id="nim" class="form-control" placeholder="Masukkan NIM" required>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="universitas" class="form-label">Universitas</label>
-            <input type="text" name="universitas" id="universitas" class="form-control" placeholder="Masukkan Nama Universitas" required>
+            <label for="nama_instansi_asal" class="form-label">Asal Instansi</label>
+            <input type="text" name="nama_instansi_asal" id="nama_instansi_asal" class="form-control" placeholder="Masukkan Nama Instansi Asal" required>
         </div>
         <div class="col-md-6 mb-3">
             <label for="jurusan" class="form-label">Jurusan</label>

@@ -18,7 +18,7 @@ if (isset($_POST['edit_mahasiswa'])) {
     // Mengambil data dengan pengamanan dasar
     $id_mahasiswa = $_POST["id_mahasiswa"];
     $nama = htmlspecialchars($_POST["nama"]);
-    $universitas = htmlspecialchars($_POST["universitas"]);
+    $nama_instansi_asal = htmlspecialchars($_POST["nama_instansi_asal"]);
     $jurusan = htmlspecialchars($_POST["jurusan"]);
     $nim = htmlspecialchars($_POST["nim"]);
     $mulai_magang = $_POST["mulai_magang"];
@@ -60,9 +60,9 @@ if (isset($_POST['edit_mahasiswa'])) {
     }
 
     // [PERBAIKAN KEAMANAN] Update tbl_mahasiswa menggunakan prepared statement
-    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, universitas=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, foto=? WHERE id_mahasiswa=?";
+    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, foto=? WHERE id_mahasiswa=?";
     $stmt_update = mysqli_prepare($kon, $sql_update);
-    mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $universitas, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
+    mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
     $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
 
     // Finalisasi Transaksi
@@ -107,8 +107,8 @@ $data = mysqli_fetch_array($hasil);
             <input type="text" name="nim" id="nim" class="form-control" value="<?php echo htmlspecialchars($data['nim']); ?>" required>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="universitas" class="form-label">Universitas</label>
-            <input type="text" name="universitas" id="universitas" class="form-control" value="<?php echo htmlspecialchars($data['universitas']); ?>" required>
+            <label for="nama_instansi_asal" class="form-label">Asal Instansi</label>
+            <input type="text" name="nama_instansi_asal" id="nama_instansi_asal" class="form-control" value="<?php echo htmlspecialchars($data['nama_instansi_asal']); ?>" required>
         </div>
         <div class="col-md-6 mb-3">
             <label for="jurusan" class="form-label">Jurusan</label>

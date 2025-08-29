@@ -57,7 +57,7 @@
         <form action="index.php" method="GET" class="mb-4">
             <input type="hidden" name="page" value="mahasiswa"/>
             <div class="input-group">
-                <input type="text" name="cari" class="form-control" placeholder="Cari berdasarkan Nama, NIM, atau Universitas..." value="<?php echo isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : ''; ?>">
+                <input type="text" name="cari" class="form-control" placeholder="Cari berdasarkan Nama, NIM, atau Instansi..." value="<?php echo isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : ''; ?>">
                 <button type="submit" class="btn btn-info">
                     <i class="bi bi-search"></i> Cari
                 </button>
@@ -71,7 +71,7 @@
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
-                        <th>Universitas</th>
+                        <th>Asal Instansi</th>
                         <th>NIM</th>
                         <th>Mulai</th>
                         <th>Selesai</th>
@@ -84,7 +84,7 @@
                         // [PERBAIKAN KEAMANAN] Menggunakan prepared statement untuk pencarian
                         $cari = $_GET['cari'] ?? '';
                         if (!empty($cari)) {
-                            $sql = "SELECT * FROM tbl_mahasiswa WHERE nama LIKE ? OR nim LIKE ? OR universitas LIKE ?";
+                            $sql = "SELECT * FROM tbl_mahasiswa WHERE nama LIKE ? OR nim LIKE ? OR nama_instansi_asal LIKE ?";
                             $stmt = mysqli_prepare($kon, $sql);
                             $searchTerm = "%" . $cari . "%";
                             mysqli_stmt_bind_param($stmt, "sss", $searchTerm, $searchTerm, $searchTerm);
@@ -102,7 +102,7 @@
                     <tr>
                         <td><?php echo $no; ?></td>
                         <td><?php echo htmlspecialchars($data['nama']); ?></td>
-                        <td><?php echo htmlspecialchars($data['universitas']); ?></td>
+                        <td><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></td>
                         <td><?php echo htmlspecialchars($data['nim']);?></td>
                         <td><?php echo date('d-m-Y', strtotime($data["mulai_magang"])); ?></td>
                         <td><?php echo date('d-m-Y', strtotime($data["akhir_magang"])); ?></td>
