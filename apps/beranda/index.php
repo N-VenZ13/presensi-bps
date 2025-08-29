@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
-            <div class="panel-heading">Beranda</div>
+            <div class="panel-heading"></div>
             <div class="panel-body">
 
             <!--Menampilkan Nama Pengguna Sesuai Level -->

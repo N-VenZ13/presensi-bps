@@ -1,232 +1,339 @@
 <?php
-    //Memulai sesi
-    session_start();
-    //Jika kode pengguna di session kosong maka kembali ke login
-    if (!$_SESSION["kode_pengguna"]){
-        header("Location:login.php");
-    //Jika kode pengguna ada maka akan di proses masuk ke halaman utama
-    } else {
-        //Menghubungkan database
-        include 'config/database.php';
-        //Mengambil variable dari session 
-        $kode_pengguna=$_SESSION["kode_pengguna"];
-        $username=$_SESSION["username"];
-        //Query untuk menampilkan nama ke halaman utama
-        $hasil=mysqli_query($kon,"select username from tbl_user where kode_pengguna='$kode_pengguna'");
-        //Menyimpan data query ke variable data
-        $data = mysqli_fetch_array($hasil); 
-        //Menyimpan data username ke variable username
-        $username_db=$data['username'];
-    //Jika username kosong maka session akan di hapus
-    if ($username!=$username_db){
-        //Menghapus session
-        session_unset();
-        session_destroy();
-        //Mengalihkan page ke halaman login
-        header("Location:login.php");
-    }
-    }
-?>
+// ==========================================================
+// [DARI INDEX.PHP LAMA] - BAGIAN 1: SESSION & SECURITY CHECK
+// ==========================================================
+session_start();
+// Jika tidak ada session, redirect ke halaman login
+if (!isset($_SESSION["kode_pengguna"])) {
+    header("Location: login.php");
+    exit(); // Selalu exit setelah redirect
+}
 
-<?php
-    //Menghubungkan database
-    include 'config/database.php';
-    //Query untuk menampilkan table tbl_site
-    $query = mysqli_query($kon, "select * from tbl_site limit 1");    
-    //Menyimpan hasil query ke variable
-    $row = mysqli_fetch_array($query);
-    //Menyimpan nama instansi dari tbl_site
-    $nama_instansi=$row['nama_instansi'];
-    //Menyimpan logo dari tbl_site
-    $logo=$row['logo'];
-?>
+// Menghubungkan ke database
+include 'config/database.php';
 
-<!DOCTYPE html>
-<html>
+// Verifikasi ulang session untuk keamanan tambahan
+$kode_pengguna = $_SESSION["kode_pengguna"];
+$username_session = $_SESSION["username"];
+
+$stmt = mysqli_prepare($kon, "SELECT username FROM tbl_user WHERE kode_pengguna = ?");
+mysqli_stmt_bind_param($stmt, "s", $kode_pengguna);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$data = mysqli_fetch_array($result);
+$username_db = $data['username'] ?? null;
+
+// Jika username di session tidak cocok dengan di DB, hancurkan session
+if ($username_session != $username_db) {
+    session_unset();
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
+// ==========================================================
+// AKHIR DARI BAGIAN 1
+// ==========================================================
+
+
+// ==========================================================
+// [DARI INDEX.PHP LAMA] - BAGIAN 2: MENGAMBIL INFO SITUS
+// ==========================================================
+$query_site = mysqli_query($kon, "SELECT * FROM tbl_site LIMIT 1");
+$site_info = mysqli_fetch_array($query_site);
+$nama_instansi = $site_info['nama_instansi'];
+$logo = $site_info['logo'];
+// ==========================================================
+// AKHIR DARI BAGIAN 2
+// ==========================================================
+
+// Variabel untuk menandai halaman aktif di sidebar
+$page = $_GET['page'] ?? 'beranda'; // Default ke beranda jika tidak ada
+?>
+<!doctype html>
+<html lang="id">
+
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="apps/pengaturan/logo/<?php echo $logo; ?>">
-    <!-- Title Website -->
-    <title><?php echo $nama_instansi; ?></title>
-    <!-- Bootstrap -->
-    <link href="template/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="template/css/font-awesome.min.css" rel="stylesheet">
-    <!-- Date Picker 3 -->
-    <link href="template/css/datepicker3.css" rel="stylesheet">
-    <!-- Local CSS -->
-    <link href="template/css/styles.css" rel="stylesheet">
-    <!-- jQuery -->
-    <link rel="stylesheet" href="assets/css/jquery-ui.css">
-    <script src="template/js/jquery-2.2.3.min.js"></script>
-    <script src="template/js/jquery-1.11.1.min.js"></script>
-    <!-- Custom Font -->
-    <link href="src/font/font.css" rel="stylesheet" type="text/css">
-    <!-- Custom CSS -->
-    <style>
-        .no-js #loader { display: none;  }
-        .js #loader { display: block; position: absolute; left: 100px; top: 0; }
-        .se-pre-con {
-            position: fixed;
-            left: 0px;
-            top: 0px;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
-            background: url('loading.gif') center no-repeat #fff;
-        }
-    </style>
+
+    <!-- [DIUBAH] Title dan Favicon dinamis dari DB -->
+    <title><?php echo htmlspecialchars(ucfirst($page)) . " | " . htmlspecialchars($nama_instansi); ?></title>
+    <link rel="shortcut icon" href="apps/pengaturan/logo/<?php echo htmlspecialchars($logo); ?>">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Style kustom kita -->
+    <link href="/absensi-magang/template/redesign/css/custom_style.css" rel="stylesheet">
 </head>
 
 <body>
-<nav class="navbar navbar-custom navbar-fixed-top bg-info" role="navigation">
-    <div class="container-fluid"><!-- container-fluid -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sidebar-collapse"><span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span></button>
-            <a class="navbar-brand" href="#">ABSENSI | KEGIATAN</a>
-        </div>
-    </div><!-- /.container-fluid -->
-</nav>
-<div id="sidebar-collapse" class="col-sm-3 col-lg-2 sidebar">
-    <!-- Menampilkan info nama dan level admin di navbar -->
-    <?php if ($_SESSION['level']=='Admin' or $_SESSION['level']=='admin'):?>
-        <div class="profile-sidebar">
-            <div class="profile-userpic">
-                <img src="source/img/profile.png" class="img-responsive" alt="">
-            </div>
-            <div class="profile-usertitle">
-            <?php echo substr($_SESSION['nama_admin'],0,20); ?>
-                <div class="profile-usertitle-name"><?php echo "Administrator"; ?></div>
-                <div></div>
-            </div>
-            <div class="clear"></div>
-        </div>
-    <?php endif; ?>
-    <!-- Menampilkan info nama dan level admin di navbar -->
+    <div class="wrapper">
 
-    <!-- Menampilkan info nama dan level mahasiswa di navbar -->
-    <?php if ($_SESSION['level']=='Mahasiswa' or $_SESSION['level']=='mahasiswa'):?>
-        <div class="profile-sidebar">
-            <div class="profile-userpic">
-                <img src="apps/mahasiswa/foto/<?php echo $_SESSION['foto'];?>" class="img-responsive" alt="">
+        <div class="d-flex">
+            <!-- =============================================== -->
+            <!-- BAGIAN SIDEBAR (MENU KIRI) - DINAMIS -->
+            <!-- =============================================== -->
+            <div class="sidebar d-flex flex-column p-3">
+                <div class="sidebar-header">
+                    <!-- [DARI INDEX.PHP LAMA] Menampilkan info user sesuai level -->
+                    <?php if ($_SESSION['level'] == 'Admin'): ?>
+                        <img src="source/img/profile.png" class="sidebar-avatar" alt="Avatar Admin">
+                        <h5 class="user-name mt-2 mb-0"><?php echo htmlspecialchars($_SESSION['nama_admin']); ?></h5>
+                        <small class="user-level">Administrator</small>
+                    <?php else: // Mahasiswa 
+                    ?>
+                        <img src="apps/mahasiswa/foto/<?php echo htmlspecialchars($_SESSION['foto']); ?>" class="sidebar-avatar" alt="Foto Mahasiswa">
+                        <h5 class="user-name mt-2 mb-0"><?php echo htmlspecialchars($_SESSION['nama_mahasiswa']); ?></h5>
+                        <small class="user-level">Mahasiswa</small>
+                    <?php endif; ?>
+                </div>
+
+                <ul class="nav flex-column mb-auto">
+                    <!-- [DARI INDEX.PHP LAMA] Menu dibuat dinamis -->
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($page == 'beranda') ? 'active' : ''; ?>" href="index.php?page=beranda">
+                            <i class="bi bi-house-door-fill"></i> Beranda
+                        </a>
+                    </li>
+
+                    <!-- Menu Admin -->
+                    <?php if ($_SESSION["level"] == "Admin"): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'mahasiswa') ? 'active' : ''; ?>" href="index.php?page=mahasiswa">
+                                <i class="bi bi-people-fill"></i> Data Mahasiswa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'data_absensi') ? 'active' : ''; ?>" href="index.php?page=data_absensi">
+                                <i class="bi bi-calendar-check-fill"></i> Data Absensi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'data_kegiatan') ? 'active' : ''; ?>" href="index.php?page=data_kegiatan">
+                                <i class="bi bi-file-earmark-text-fill"></i> Data Kegiatan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'admin') ? 'active' : ''; ?>" href="index.php?page=admin">
+                                <i class="bi bi-person-badge-fill"></i> Administrator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'pengaturan') ? 'active' : ''; ?>" href="index.php?page=pengaturan">
+                                <i class="bi bi-gear-fill"></i> Pengaturan
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Menu Mahasiswa -->
+                    <?php if ($_SESSION["level"] == "Mahasiswa"): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'absen') ? 'active' : ''; ?>" href="index.php?page=absen">
+                                <i class="bi bi-calendar-plus-fill"></i> Absensi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'riwayat') ? 'active' : ''; ?>" href="index.php?page=riwayat">
+                                <i class="bi bi-clock-history"></i> Riwayat Absensi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'kegiatan') ? 'active' : ''; ?>" href="index.php?page=kegiatan">
+                                <i class="bi bi-journal-text"></i> Kegiatan Harian
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo ($page == 'profil') ? 'active' : ''; ?>" href="index.php?page=profil">
+                                <i class="bi bi-person-circle"></i> Profil
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+                <hr class="text-secondary">
+                <div class="nav-item">
+                    <a class="nav-link" href="logout.php" id="tombol-keluar">
+                        <i class="bi bi-box-arrow-left"></i> Keluar
+                    </a>
+                </div>
             </div>
-            <div class="profile-usertitle">
-            <?php echo substr($_SESSION['nama_mahasiswa'],0,20); ?>
-                <div class="profile-usertitle-name"><?php echo "Mahasiswa"; ?></div>
-                <div></div>
+
+            <!-- =============================================== -->
+            <!-- BAGIAN KONTEN UTAMA (KANAN) -->
+            <!-- =============================================== -->
+            <div class="main-content">
+                <nav class="navbar-top d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <!-- [BARU] Tombol Hamburger untuk Toggle Sidebar -->
+                        <button class="btn btn-link text-dark fs-4 me-2" id="sidebarToggle">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <span class="fs-5 fw-bold text-uppercase"><?php echo str_replace('_', ' ', $page); ?></span>
+                    </div>
+                    <span class="text-muted d-none d-md-block">Selamat Datang di Sistem Absensi Magang!</span>
+                </nav>
+
+                <div class="content-area">
+                    <!-- ========================================================== -->
+                    <!-- [DARI INDEX.PHP LAMA] - BAGIAN 3: PAGE ROUTER / PENGHUBUNG -->
+                    <!-- ========================================================== -->
+                    <?php
+                    switch ($page) {
+                        case 'beranda':
+                            include "apps/beranda/index.php";
+                            break;
+                        case 'admin':
+                            include "apps/admin/index.php";
+                            break;
+                        case 'mahasiswa':
+                            include "apps/mahasiswa/index.php";
+                            break;
+                        case 'data_absensi':
+                            include "apps/data_absensi/index.php";
+                            break;
+                        case 'data_kegiatan':
+                            include "apps/data_kegiatan/index.php";
+                            break;
+                        case 'pengaturan':
+                            include "apps/pengaturan/index.php";
+                            break;
+                        case 'absen':
+                            include "apps/pengguna/absen.php";
+                            break;
+                        case 'riwayat':
+                            include "apps/data_absensi/riwayat.php";
+                            break;
+                        case 'kegiatan':
+                            include "apps/data_kegiatan/kegiatan.php";
+                            break;
+                        case 'profil':
+                            include "apps/pengguna/profil.php";
+                            break;
+                        default:
+                            echo "<div class='alert alert-danger'>Maaf. Halaman tidak ditemukan!</div>";
+                            break;
+                    }
+                    ?>
+                    <!-- ========================================================== -->
+                    <!-- AKHIR DARI BAGIAN 3 -->
+                    <!-- ========================================================== -->
+                </div>
             </div>
-            <div class="clear"></div>
         </div>
-    <?php endif;  ?>
-    <!-- Menampilkan info nama dan level mahasiswa di navbar -->
 
-<!-- Side Bar Navigation -->
-<div class="divider"></div>
-    <!-- Menu Beranda -->
-    <ul class="nav menu">
-		<li><a href='index.php?page=beranda'><em class='fa fa-home'>&nbsp;</em>  Beranda</a></li>
-    <!-- Menu Beranda -->
-    <!-- Menu Admin -->
-        <?php if ($_SESSION["level"]=="Admin" or $_SESSION['level']=='admin'): ?>
-            <li><a href="index.php?page=mahasiswa" id="mahasiswa"><em class="fa fa-users">&nbsp;</em> Data Mahasiswa</a></li>
-            <li><a href="index.php?page=data_absensi" id="data_absensi"><em class="fa fa-calendar">&nbsp;</em> Data Absensi</a></li>
-            <li><a href="index.php?page=data_kegiatan" id="kegiatan"><em class="fa fa-book">&nbsp;</em> Data Kegiatan</a></li>
-            <li><a href="index.php?page=admin" id="admin"><em class="fa fa-user">&nbsp;</em> Administrator</a></li>
-            <li><a href="index.php?page=pengaturan" id="pengaturan"><em class="fa fa-gear">&nbsp;</em> Pengaturan</a></li>
-            <?php endif; ?>
-    <!-- Menu Admin -->
-    <!-- Menu Mahasiswa -->
-            <?php  if ($_SESSION["level"]=="Mahasiswa" or $_SESSION["level"]=="mahasiswa"): ?>
-                <li><a href="index.php?page=absen"><em class="fa fa-calendar-check-o">&nbsp;</em> Absensi</a></li>
-                <li><a href="index.php?page=riwayat"><em class="fa fa-history">&nbsp;</em> Riwayat Absensi</a></li>
-                <li><a href="index.php?page=kegiatan"><em class="fa fa-book">&nbsp;</em> Kegiatan Harian</a></li>
-                <li><a href="index.php?page=profil"><em class="fa fa-user-circle-o">&nbsp;</em> Profil</a></li>    
-            <?php endif; ?>
-    <!-- Menu Mahasiswa -->
-    <!-- Menu Keluar -->    
-        <li><a href="logout.php" id="keluar"><em class="fa fa-sign-out">&nbsp;</em> Keluar</a></li>
-    </ul>
-    <!-- Menu Keluar -->
-</div>
-<!-- Side Bar Navigation -->
+    </div>
 
-<!-- Page Penghubung -->
-<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
-    <?php 
-        if(isset($_GET['page'])){
-            $page = $_GET['page'];
-            switch ($page) {
-                case 'beranda':
-                    include "apps/beranda/index.php";
-                    break;
-                case 'admin':
-                    include "apps/admin/index.php";
-                    break;
-                case 'mahasiswa':
-                    include "apps/mahasiswa/index.php";
-                    break;
-                case 'data_absensi':
-                    include "apps/data_absensi/index.php";
-                    break;
-                case 'data_kegiatan':
-                    include "apps/data_kegiatan/index.php";
-                    break;
-                case 'pengaturan':
-                    include "apps/pengaturan/index.php";
-                    break;
-                case 'absen':
-                    include "apps/pengguna/absen.php";
-                    break;
-                case 'riwayat':
-                    include "apps/data_absensi/riwayat.php";
-                    break;
-                case 'kegiatan':
-                    include "apps/data_kegiatan/kegiatan.php";
-                    break;
-                case 'profil':
-                    include "apps/pengguna/profil.php";
-                    break;
-                default:
-                echo "<center><h3>Maaf. Halaman Tidak Di Temukan !</h3></center>";
-                break;
+    <!-- ========================================================== -->
+    <!-- BAGIAN SCRIPT -->
+    <!-- ========================================================== -->
+
+    <!-- [1] MUAT LIBRARY UTAMA TERLEBIH DAHULU -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- [2] MUAT SCRIPT UMUM UNTUK SEMUA HALAMAN -->
+    <script>
+        // Script konfirmasi keluar
+        document.getElementById('tombol-keluar').addEventListener('click', function(e) {
+            if (!confirm("Apakah Anda yakin ingin keluar?")) {
+                e.preventDefault();
             }
-        }
-    ?>
-<!-- Function Page Penghubung -->
+        });
 
-    <!--/.row-->
-</div>
-<!--/.main-->
+        // Script Toggle Sidebar
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const wrapper = document.querySelector('.wrapper');
+            sidebarToggle.addEventListener('click', function() {
+                wrapper.classList.toggle('toggled');
+            });
+        });
+    </script>
 
-<!-- Java Script -->
-<script src="template/js/bootstrap.min.js"></script>
-<script src="template/js/chart.min.js"></script>
-<script src="template/js/chart-data.js"></script>
-<script src="template/js/easypiechart.js"></script>
-<script src="template/js/easypiechart-data.js"></script>
-<script src="template/js/bootstrap-datepicker.js"></script>
-<script src="template/js/custom.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.2/css/buttons.dataTables.min.css">
-<script src="/assets/chart/chart.js"></script>
-<!-- Java Script -->
+    <!-- =================================================================== -->
+    <!-- [3] [BARU] MUAT SCRIPT KHUSUS HANYA JIKA DI HALAMAN MAHASISWA -->
+    <!-- =================================================================== -->
+    <?php if ($page == 'mahasiswa'): ?>
+        <script>
+            // Inisialisasi Tooltip Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
 
-<script>
-   // konfirmasi sebelum keluar aplikasi
-   $('#keluar').on('click',function(){
-        konfirmasi=confirm("Apakah Anda Yakin Ingin Keluar?")
-        if (konfirmasi){
-            return true;
-        }else {
-            return false;
-        }
-    });
-</script>
+            // Semua script AJAX untuk halaman mahasiswa sekarang di sini
+            $('#tombol_tambah').on('click', function() {
+                $.ajax({
+                    url: 'apps/mahasiswa/tambah.php',
+                    method: 'post',
+                    success: function(data) {
+                        $('#tampil_data').html(data);
+                        document.getElementById("judul").innerHTML = 'Tambah Mahasiswa';
+                    }
+                });
+                var myModal = new bootstrap.Modal(document.getElementById('modal'));
+                myModal.show();
+            });
+
+            $('.tombol_detail').on('click', function() {
+                var id_mahasiswa = $(this).attr("id_mahasiswa");
+                $.ajax({
+                    url: 'apps/mahasiswa/detail.php',
+                    method: 'post',
+                    data: {
+                        id_mahasiswa: id_mahasiswa
+                    },
+                    success: function(data) {
+                        $('#tampil_data').html(data);
+                        document.getElementById("judul").innerHTML = 'Detail Mahasiswa';
+                    }
+                });
+                var myModal = new bootstrap.Modal(document.getElementById('modal'));
+                myModal.show();
+            });
+
+            $('.tombol_setting').on('click', function() {
+                var kode_mahasiswa = $(this).attr("kode_mahasiswa");
+                $.ajax({
+                    url: 'apps/mahasiswa/pengguna.php',
+                    method: 'post',
+                    data: {
+                        kode_mahasiswa: kode_mahasiswa
+                    },
+                    success: function(data) {
+                        $('#tampil_data').html(data);
+                        document.getElementById("judul").innerHTML = 'Setting Mahasiswa';
+                    }
+                });
+                var myModal = new bootstrap.Modal(document.getElementById('modal'));
+                myModal.show();
+            });
+
+            $('.tombol_edit').on('click', function() {
+                var id_mahasiswa = $(this).attr("id_mahasiswa");
+                $.ajax({
+                    url: 'apps/mahasiswa/edit.php',
+                    method: 'post',
+                    data: {
+                        id_mahasiswa: id_mahasiswa
+                    },
+                    success: function(data) {
+                        $('#tampil_data').html(data);
+                        document.getElementById("judul").innerHTML = 'Edit Mahasiswa';
+                    }
+                });
+                var myModal = new bootstrap.Modal(document.getElementById('modal'));
+                myModal.show();
+            });
+
+            $('.btn-hapus-mahasiswa').on('click', function() {
+                return confirm("Apakah Anda yakin ingin menghapus data mahasiswa ini?");
+            });
+        </script>
+    <?php endif; ?>
 </body>
+
 </html>
