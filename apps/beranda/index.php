@@ -17,8 +17,8 @@ $jumlah_mahasiswa_aktif = $data_mahasiswa_aktif['total'];
 $sql_kehadiran = "SELECT 
                     SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as hadir,
                     SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as izin
-                  FROM tbl_absensi 
-                  WHERE tanggal = '$tanggal_hari_ini'";
+                    FROM tbl_absensi 
+                    WHERE tanggal = '$tanggal_hari_ini'";
 $hasil_kehadiran = mysqli_query($kon, $sql_kehadiran);
 $data_kehadiran = mysqli_fetch_assoc($hasil_kehadiran);
 $jumlah_hadir_hari_ini = $data_kehadiran['hadir'] ?? 0;
@@ -42,7 +42,7 @@ for ($i = 6; $i >= 0; $i--) {
     $sql_grafik = "SELECT 
                     SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as hadir,
                     SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as izin
-                   FROM tbl_absensi WHERE tanggal = '$tanggal'";
+                    FROM tbl_absensi WHERE tanggal = '$tanggal'";
     
     $hasil_grafik = mysqli_query($kon, $sql_grafik);
     $data_per_hari = mysqli_fetch_assoc($hasil_grafik);
@@ -52,30 +52,11 @@ for ($i = 6; $i >= 0; $i--) {
 }
 ?>
 
-<!-- [BARU] Breadcrumb -->
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item active" aria-current="page">Beranda</li>
-    </ol>
-</nav>
-
 <!-- [DIUBAH] Pesan Selamat Datang -->
 <div class="alert alert-light" role="alert">
     <h4 class="alert-heading">Selamat Datang, <?php echo htmlspecialchars($nama_pengguna); ?>!</h4>
     <p>Ini adalah ringkasan aktivitas magang di sistem. Anda dapat memantau kehadiran dan data lainnya melalui menu di samping.</p>
 </div>
-<<<<<<< HEAD
-
-<div class="panel panel-container">
-
-            <!--Menampilkan Nama Pengguna Sesuai Level -->
-            <?php if ($_SESSION['level']=='Admin' or $_SESSION['level']=='Admin'):?>
-            <center><h2><b><br>Selamat Datang</b>,  <?php echo  $_SESSION["nama_admin"]; ?>.</h2><br><br><br></center>
-            <?php endif; ?>
-            <?php if ($_SESSION['level']=='Mahasiswa' or $_SESSION['level']=='mahasiswa'):?>
-            <center> <h2><b><br>Selamat Datang</b>, <?php echo  $_SESSION["nama_mahasiswa"]; ?>.</h2><br><br><br></center>
-            <?php endif; ?>
-            <!-- Menampilkan Nama Pengguna Sesuai Level -->
 
 <div class="card text-center">
     <div class="card-body">
@@ -87,25 +68,7 @@ for ($i = 6; $i >= 0; $i--) {
                 include 'config/database.php';
                 $query = mysqli_query($kon, "select * from tbl_site limit 1");    
                 $row = mysqli_fetch_array($query);
-            ?>
-            <!-- Menhambil data table tbl_site -->
-
-            <br><img src="logo.png" alt="logo" width="150">
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-
-            <!-- Info Aplikasi -->
-            <center><p>Selamat Datang di<b> Aplikasi Absensi dan Kegiatan Harian Mahasiswa </b>berbasis web. 
-                <br>Aplikasi ini dirancang untuk memudahkan Mahasiswa PKL di<b> <?php echo $row['nama_instansi'];?> </b>
-                <br>dalam melakukan absensi serta mencatat kegiatan harian secara digital, cepat, dan praktis, 
-                sehingga <br>memudahkan mahasiswa maupun pembimbing dalam mengelola 
-                dan memantau aktivitas selama masa PKL.</center>
-            <!-- Info Aplikasi -->
-            
-=======
+?>
 
 <!-- [BARU] Kartu Statistik -->
 <div class="row g-4 mb-4">
@@ -117,7 +80,6 @@ for ($i = 6; $i >= 0; $i--) {
                     <p class="card-text">Mahasiswa Aktif</p>
                 </div>
                 <i class="bi bi-people-fill" style="font-size: 3rem; opacity: 0.5;"></i>
->>>>>>> main
             </div>
         </div>
     </div>

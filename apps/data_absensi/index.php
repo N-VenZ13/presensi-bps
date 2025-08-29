@@ -76,14 +76,16 @@
                 <tbody>
                     <?php
                         $base_sql = "SELECT a.*, m.nama, m.universitas, DAYNAME(a.tanggal) as hari, 
-                                     CASE a.status 
-                                         WHEN 1 THEN 'Hadir' 
-                                         WHEN 2 THEN 'Izin' 
-                                         WHEN 3 THEN 'Tidak Hadir' 
-                                         ELSE 'Tidak Diketahui' 
-                                     END as status_text 
-                                     FROM tbl_absensi a 
-                                     JOIN tbl_mahasiswa m ON a.id_mahasiswa = m.id_mahasiswa";
+                            CASE a.status 
+                                WHEN 1 THEN 'Hadir' 
+                                WHEN 2 THEN 'Izin' 
+                                WHEN 3 THEN 'Tidak Hadir' 
+                                WHEN 4 THEN 'Sakit'
+                                WHEN 5 THEN 'Cuti'
+                            ELSE 'Tidak Diketahui' 
+                            END as status_text 
+                            FROM tbl_absensi a 
+                            JOIN tbl_mahasiswa m ON a.id_mahasiswa = m.id_mahasiswa";
                         
                         $conditions = [];
                         $params = [];
@@ -133,9 +135,9 @@
                         <td>
                             <?php 
                                 echo MendapatkanHari(strtolower($data["hari"])) . ", " . 
-                                     date('d', strtotime($data['tanggal'])) . ' ' . 
-                                     MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' . 
-                                     date('Y', strtotime($data['tanggal']));
+                                    date('d', strtotime($data['tanggal'])) . ' ' . 
+                                    MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' . 
+                                    date('Y', strtotime($data['tanggal']));
                             ?>
                         </td>
                         <td class="text-center">
@@ -178,7 +180,7 @@
     // Inisialisasi Tooltip Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
+    return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
     // Script AJAX untuk halaman Data Absensi

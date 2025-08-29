@@ -1,6 +1,6 @@
 Login
 User : rani (admin)
-Pass : 121212
+Pass : 123456
 
 User : 062330801639 (mahasiswa)
-Pass : 121212
+Pass : 123456
