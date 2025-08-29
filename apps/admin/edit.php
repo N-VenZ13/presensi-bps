@@ -1,94 +1,60 @@
 <?php
 session_start();
-    if (isset($_POST['edit_admin'])) {
-        
-        //Include file koneksi, untuk koneksikan ke database
-        include '../../config/database.php';
-        
-        //Fungsi untuk mencegah inputan karakter yang tidak sesuai
-        function input($data) {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
+include '../../config/database.php';
 
-        //Cek apakah ada kiriman form dari method post
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            //Memulai transaksi
-            mysqli_query($kon,"START TRANSACTION");
-            $id_admin=input($_POST["id_admin"]);
-            $nama=input($_POST["nama"]);
-            $nip=input($_POST["nip"]);
-            $email=input($_POST["email"]);
+if (isset($_POST['edit_admin'])) {
+    
+    if ($_SESSION['level'] != 'Admin') die("Akses ditolak.");
 
-            //Query unutk update tbl_admin
-            $sql="UPDATE tbl_admin SET 
-            nama='$nama', 
-            nip='$nip', 
-            email='$email'
-            WHERE id_admin=$id_admin";
-                
-            //Mengeksekusi query 
-            $edit_admin=mysqli_query($kon,$sql);
+    mysqli_query($kon, "START TRANSACTION");
 
-            //validasi jika data admin berhasil di update
-            if ($edit_admin) {
-                mysqli_query($kon,"COMMIT");
-                header("Location:../../index.php?page=admin&edit=berhasil");
-            }
-            else {
-            //validasi jika data admin berhasil di update
-                mysqli_query($kon,"ROLLBACK");
-                header("Location:../../index.php?page=admin&edit=gagal");
-            }
-        }
+    $id_admin = $_POST["id_admin"];
+    $nama = htmlspecialchars($_POST["nama"]);
+    $nip = htmlspecialchars($_POST["nip"]);
+    $email = htmlspecialchars($_POST["email"]);
+
+    // [PERBAIKAN KEAMANAN]
+    $stmt = mysqli_prepare($kon, "UPDATE tbl_admin SET nama=?, nip=?, email=? WHERE id_admin=?");
+    mysqli_stmt_bind_param($stmt, "sssi", $nama, $nip, $email, $id_admin);
+    $edit_admin = mysqli_stmt_execute($stmt);
+
+    if ($edit_admin) {
+        mysqli_query($kon, "COMMIT");
+        header("Location:../../index.php?page=admin&edit=berhasil");
+    } else {
+        mysqli_query($kon, "ROLLBACK");
+        header("Location:../../index.php?page=admin&edit=gagal");
     }
+    exit();
+}
+
+// [PERBAIKAN KEAMANAN]
+$id_admin = $_POST["id_admin"];
+$stmt_select = mysqli_prepare($kon, "SELECT * FROM tbl_admin WHERE id_admin = ?");
+mysqli_stmt_bind_param($stmt_select, "i", $id_admin);
+mysqli_stmt_execute($stmt_select);
+$hasil = mysqli_stmt_get_result($stmt_select);
+$data = mysqli_fetch_array($hasil);
 ?>
 
-<?php 
-    include '../../config/database.php';
-    $id_admin=$_POST["id_admin"];
-    $sql="select * from tbl_admin where id_admin=$id_admin limit 1";
-    $hasil=mysqli_query($kon,$sql);
-    $data = mysqli_fetch_array($hasil); 
-?>
-
-<form action="apps/admin/edit.php" method="post" enctype="multipart/form-data">
+<form action="apps/admin/edit.php" method="post">
+    <input type="hidden" name="id_admin" value="<?php echo $data['id_admin']; ?>">
     <div class="row">
-        <div class="col-sm-7">
-                <input type="hidden" name="id_admin" class="form-control" value="<?php echo $data['id_admin'];?>">
-            <div class="form-group">
-                <label>Nama Lengkap :</label>
-                <input type="text" name="nama" class="form-control" value="<?php echo $data['nama'];?>" placeholder="Masukan Nama Lengkap" required>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" name="nama" class="form-control" value="<?php echo htmlspecialchars($data['nama']); ?>" required>
         </div>
-        <div class="col-sm-5">
-            <div class="form-group">
-                <label>Nomor Induk Pegawai (NIP) :</label>
-                <input type="text" name="nip" class="form-control"  value="<?php echo $data['nip']; ?>" placeholder="Masukan Nomor Induk Pegawai" required>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Nomor Induk Pegawai (NIP)</label>
+            <input type="text" name="nip" class="form-control" value="<?php echo htmlspecialchars($data['nip']); ?>" required>
         </div>
-        <div class="col-sm-7">
-            <div class="form-group">
-                <label>Email :</label>
-                <input type="email" name="email" class="form-control" value="<?php echo $data['email'];?>" placeholder="Masukan Email" required>
-            </div>
+        <div class="col-md-12 mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($data['email']); ?>" required>
         </div>
     </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <div class="form-group">
-                <br>
-                <button type="submit" name="edit_admin" id="Submit" class="btn btn-warning" ><i class="fa fa-edit"></i> Update</button>
-            </div>
-        </div>
+    <hr>
+    <div class="d-flex justify-content-end">
+        <button type="submit" name="edit_admin" class="btn btn-warning"><i class="bi bi-save"></i> Update</button>
     </div>
 </form>
-
-<style>
-    .file {
-    visibility: hidden;
-    position: absolute;
-    }
-</style>
