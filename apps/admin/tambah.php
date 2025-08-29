@@ -1,94 +1,61 @@
 <?php
-    session_start();
-    if (isset($_POST['tambah_admin'])) {
-        
-        //Menghubungkan ke database
-        include '../../config/database.php';
+session_start();
+if (isset($_POST['tambah_admin'])) {
+    
+    if ($_SESSION['level'] != 'Admin') die("Akses ditolak.");
 
-        //Fungsi untuk mencegah inputan karakter yang tidak sesuai
-        function input($data) {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
+    include '../../config/database.php';
 
-        //Cek apakah ada kiriman form dari method post
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    mysqli_query($kon, "START TRANSACTION");
 
-            //Memulai transaksi
-            mysqli_query($kon,"START TRANSACTION");
+    $nama = htmlspecialchars($_POST["nama"]);
+    $nip = htmlspecialchars($_POST["nip"]);
+    $email = htmlspecialchars($_POST["email"]);
 
-            //Menyimpan input dari form tambah admin
-            $nip=input($_POST["nip"]);
-            $nama=input($_POST["nama"]);
-            $email=input($_POST["email"]);
+    $query_id = mysqli_query($kon, "SELECT MAX(id_admin) AS id_terbesar FROM tbl_admin");
+    $data_id = mysqli_fetch_array($query_id);
+    $id_baru = $data_id['id_terbesar'] + 1;
+    $kode_admin = "A" . sprintf("%03s", $id_baru);
 
-            //Membuat kode admin otomatis berdasarkan nomor terakhir dari kolom kode_pengguna
-            include '../../config/database.php';
-            $query = mysqli_query($kon, "SELECT max(id_admin) AS id_terbesar FROM tbl_admin");
-            $ambil= mysqli_fetch_array($query);
-            $id_admin = $ambil['id_terbesar'];
-            $id_admin++;
-            $huruf = "A";
-            $kode_admin = $huruf . sprintf("%03s", $id_admin);
-      
-            $sql="INSERT INTO tbl_user (kode_pengguna) VALUES ('$kode_admin')";
+    // [PERBAIKAN KEAMANAN]
+    $stmt_user = mysqli_prepare($kon, "INSERT INTO tbl_user (kode_pengguna) VALUES (?)");
+    mysqli_stmt_bind_param($stmt_user, "s", $kode_admin);
+    $simpan_pengguna = mysqli_stmt_execute($stmt_user);
 
-            //Menyimpan ke tabel pengguna
-            $simpan_pengguna=mysqli_query($kon,$sql);
-            
-            // Menyimpan ke tabel admin
-            $sql="INSERT INTO tbl_admin (kode_admin,nama,nip,email) VALUES ('$kode_admin','$nama','$nip','$email')";
-            //Menyimpan ke tabel admin
-            $simpan_admin=mysqli_query($kon,$sql);
+    // [PERBAIKAN KEAMANAN]
+    $stmt_admin = mysqli_prepare($kon, "INSERT INTO tbl_admin (kode_admin, nama, nip, email) VALUES (?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt_admin, "ssss", $kode_admin, $nama, $nip, $email);
+    $simpan_admin = mysqli_stmt_execute($stmt_admin);
 
-            //validasi jika berhasil menambahkan data admin dan data pengguna 
-            if ($simpan_pengguna and $simpan_admin) {
-                mysqli_query($kon,"COMMIT");
-                header("Location:../../index.php?page=admin&add=berhasil");
-            }
-            //validasi jika gagal menambahkan data admin dan data pengguna
-            else {
-                mysqli_query($kon,"ROLLBACK");
-                header("Location:../../index.php?page=admin&add=gagal");
-            }
-        }
+    if ($simpan_pengguna && $simpan_admin) {
+        mysqli_query($kon, "COMMIT");
+        header("Location:../../index.php?page=admin&add=berhasil");
+    } else {
+        mysqli_query($kon, "ROLLBACK");
+        header("Location:../../index.php?page=admin&add=gagal");
     }
+    exit();
+}
 ?>
 
-<form action="apps/admin/tambah.php" method="post" enctype="multipart/form-data">
+<form action="apps/admin/tambah.php" method="post">
     <div class="row">
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Nama Lengkap :</label>
-                <input type="text" name="nama" class="form-control" placeholder="Masukan Nama Lengkap" required>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" required>
         </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Nomor Induk Pegawai (NIP) :</label>
-                <input type="text" name="nip" class="form-control"  value="" placeholder="Masukan Nomor Induk Pegawai" required>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Nomor Induk Pegawai (NIP)</label>
+            <input type="text" name="nip" class="form-control" placeholder="Masukkan NIP" required>
         </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Email :</label>
-                <input type="email" name="email" class="form-control" placeholder="Masukan Email" required>
-            </div>
+        <div class="col-md-12 mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" placeholder="Masukkan Email" required>
         </div>
     </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <button type="submit" name="tambah_admin" id="Submit" class="btn btn-success"><i class="fa fa-plus"></i> Daftar</button>
-            <button type="reset" class="btn btn-warning"><i class="fa fa-trash"></i> Reset</button>
-        </div>
+    <hr>
+    <div class="d-flex justify-content-end">
+        <button type="submit" name="tambah_admin" class="btn btn-primary me-2"><i class="bi bi-check-lg"></i> Daftar</button>
+        <button type="reset" class="btn btn-secondary"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
     </div>
 </form>
-
-<style>
-    .file {
-    visibility: hidden;
-    position: absolute;
-    }
-</style>

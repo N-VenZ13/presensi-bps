@@ -1,238 +1,224 @@
 <?php 
-  if ($_SESSION["level"]!='Admin' and $_SESSION["level"]!='admin'){
-    echo"<br><div class='alert alert-danger'>Tidak Memiliki Hak Akses</div>";
-    exit;
-  }
+    if ($_SESSION["level"] != 'Admin') {
+        echo "<div class='alert alert-danger'>Tidak memiliki Hak Akses</div>";
+        exit;
+    }
+    // Sertakan fungsi kustom Anda
+    include 'config/function.php';
 ?>
 
-<div class="row">
+<!-- [BARU] Breadcrumb dengan gaya Bootstrap 5 -->
+<nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li><a href="index.php?page=beranda">
-                <em class="fa fa-home"></em>
-            </a></li>
-        <li class="active">Data Kegiatan</li>
+        <li class="breadcrumb-item"><a href="index.php?page=beranda">Beranda</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Data Kegiatan</li>
     </ol>
-</div><!--/.row-->
+</nav>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-            Data Kegiatan
-                <span class="pull-right clickable panel-toggle panel-button-tab-left"><em class="fa fa-toggle-up"></em></span></div>
-            <div class="panel-body">
-                <div class="row">
-                <form action="#" method="GET">
-                    <input type="hidden" name="page" value="data_kegiatan"/>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <label>Nama Mahasiswa :</label>
-                            <input type="text" name="nama" id="nama" class="form-control"  value="" placeholder="Cari Mahasiswa" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <label>Tanggal Awal :</label>
-                            <input type="date" name="tanggal_awal" id="tanggal_awal" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <label>Tanggal Akhir :</label>
-                            <input type="date" name="tanggal_akhir" id="tanggal_akhir" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            </br>
-                            <button type="submit" class="btn btn-info"><i class="fa fa-search"></i> Cari</button>
-                        </div>
-                    </div>
-                </form>
-                </div>
-            </div>
-        </div>
+<!-- [BARU] Bungkus semua dalam satu card untuk konsistensi -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Data Kegiatan Harian Mahasiswa</h5>
+        <button type="button" class="btn btn-primary" id="tambah_kegiatan">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Kegiatan
+        </button>
     </div>
-</div><!--/.row-->
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-body">
-            
-            <?php
-            
-                if (isset($_GET['tambah'])) {
-                    if ($_GET['tambah']=='berhasil'){
-                        echo"<div class='alert alert-success'><strong>Berhasil!</strong> Menambahkan Kegiatan Harian</div>";
-                    }else if ($_GET['mulai']=='tambah'){
-                        echo"<div class='alert alert-warning'><strong>Sudah!</strong> Menambahkan Kegiatan Harian</div>";
-                    }
-                }
-
-                if (isset($_GET['edit'])) {
-                    if ($_GET['edit']=='berhasil'){
-                        echo"<div class='alert alert-success'><strong>Berhasil!</strong> Mengubah Kegiatan Harian</div>";
-                    }else if ($_GET['edit']=='gagal'){
-                        echo"<div class='alert alert-danger'><strong>Gagal!</strong> Mengubah Kegiatan Harian</div>";
-                    }    
-                }
-
-                if (isset($_GET['hapus'])) {
-                    if ($_GET['hapus']=='berhasil'){
-                        echo"<div class='alert alert-success'><strong>Berhasil!</strong> Menghapus Kegiatan Harian</div>";
-                    }else if ($_GET['hapus']=='gagal'){
-                        echo"<div class='alert alert-danger'><strong>Gagal!</strong> Menghapus Kegiatan Harian</div>";
-                    }    
-                }
-            ?>
-
-                <div class="form-group">
-                    <button type="button" class="btn btn-success" id="tambah_kegiatan"><i class="tambah_kegiatan fa fa-plus"></i>  Tambah</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nama</th>
-                                <th>Hari</th>
-                                <th>Tanggal</th>
-                                <th>Jam</th>
-                                <th>Kegiatan</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
+    <div class="card-body">
         
-                        <tbody>
-                        <?php
-                            // include database
-                            include 'config/database.php';
-                            include 'config/function.php';
- 
-                            if (isset($_GET['nama']) AND $_GET['nama']!="") {
-                                $nama=trim($_GET["nama"]);
-                                $tanggal_awal=$_GET["tanggal_awal"];
-                                $tanggal_akhir=$_GET["tanggal_akhir"];
-                                $sql= CariKegiatan($nama, $tanggal_awal, $tanggal_akhir);
-                            } 
-                            else { 
-                                $sql= DataKegiatan("");
-                            }                             
-                            $hasil=mysqli_query($kon,$sql);
-                            $no=0;
-                            while ($data = mysqli_fetch_array($hasil)):
-                            $no++;
-                        ?>
-                        <tr>
-                            <td><?php echo $no; ?></td>
-                            <td><?php echo $data['nama']; ?></td>
-                            <td>
-                                <?php
-                                    $hari = $data["hari"];
-                                    echo MendapatkanHari($hari);
-                                ?>
-                            </td>
-                            <td>
-                                <?php 
-                                $tgl = date("d", strtotime($data['tanggal']));
-                                $bulan = date("m", strtotime($data['tanggal']));
-                                $tahun = date("Y", strtotime($data['tanggal']));
-                                echo $tgl.' '.MendapatkanBulan($bulan).' '.$tahun
-                                ?>
-                            </td>
-                            <td><?php echo $data['waktu']; ?></td>
-                            <td><?php echo $data['kegiatan']; ?></td>
-                            <td>
-                                <button id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_kegiatan="<?php echo $data['id_kegiatan']; ?>" class="ubah_kegiatan cetak btn btn-warning" ><i class="fa fa-edit"></i></button>
-                                <a href="apps/data_kegiatan/hapus.php?id_kegiatan=<?php echo $data['id_kegiatan']; ?>" class="btn-hapus-kegiatan btn btn-danger btn-circle" ><i class="fa fa-trash"></i></a>
-                                <button id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" class="cetak_kegiatan btn btn-primary btn-circle" ><i class="fa fa-print"></i></button>
-                            </td>
-                        </tr>
-                        <!-- bagian akhir (penutup) while -->
-                        <?php endwhile; ?>
-                        </tbody>
-                    </table>
+        <!-- [DIUBAH] Notifikasi dengan gaya dan ikon Bootstrap 5 -->
+        <?php
+            function showAlert($type, $message) {
+                $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
+                echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'>";
+                echo "<i class='bi bi-{$icon} me-2'></i>";
+                echo "<div>{$message}</div>";
+                echo "</div>";
+            }
+            if (isset($_GET['tambah']) && $_GET['tambah'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Kegiatan harian telah ditambahkan.');
+            if (isset($_GET['edit']) && $_GET['edit'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Kegiatan harian telah diubah.');
+            if (isset($_GET['hapus']) && $_GET['hapus'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Kegiatan harian telah dihapus.');
+        ?>
+
+        <!-- [DIUBAH] Form Filter dengan gaya Bootstrap 5 -->
+        <div class="p-3 mb-4 rounded" style="background-color: #f8f9fa;">
+            <form action="index.php" method="GET">
+                <input type="hidden" name="page" value="data_kegiatan"/>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="nama" class="form-label">Nama Mahasiswa</label>
+                        <input type="text" name="nama" id="nama" class="form-control" placeholder="Cari nama..." value="<?php echo isset($_GET['nama']) ? htmlspecialchars($_GET['nama']) : ''; ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tanggal_awal" class="form-label">Dari Tanggal</label>
+                        <input type="date" name="tanggal_awal" id="tanggal_awal" class="form-control" value="<?php echo isset($_GET['tanggal_awal']) ? htmlspecialchars($_GET['tanggal_awal']) : ''; ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tanggal_akhir" class="form-label">Sampai Tanggal</label>
+                        <input type="date" name="tanggal_akhir" id="tanggal_akhir" class="form-control" value="<?php echo isset($_GET['tanggal_akhir']) ? htmlspecialchars($_GET['tanggal_akhir']) : ''; ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="bi bi-search"></i> Cari
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div><!--/.row-->
-
-
-<!-- Modal -->
-<div class="modal fade" id="modal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-        <div class="modal-header">
-            <h4 class="modal-title" id="judul"></h4>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </form>
         </div>
 
-        <div class="modal-body">
-            <div id="tampil_data">                   
-            </div>  
-        </div>
-  
-        <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
-        </div>
+        <!-- [DIUBAH] Table dengan gaya Bootstrap 5 -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>Mahasiswa</th>
+                        <th>Hari, Tanggal</th>
+                        <th>Jam</th>
+                        <th>Kegiatan</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        // [PERBAIKAN KEAMANAN] Query pencarian ditulis ulang dengan prepared statement
+                        $base_sql = "SELECT k.*, m.nama, DAYNAME(k.tanggal) as hari, CONCAT(k.waktu_awal, ' - ', k.waktu_akhir) as waktu
+                                     FROM tbl_kegiatan k
+                                     JOIN tbl_mahasiswa m ON k.id_mahasiswa = m.id_mahasiswa";
+                        
+                        $conditions = [];
+                        $params = [];
+                        $types = "";
 
+                        if (!empty($_GET['nama'])) {
+                            $conditions[] = "m.nama LIKE ?";
+                            $params[] = "%" . $_GET['nama'] . "%";
+                            $types .= "s";
+                        }
+                        if (!empty($_GET['tanggal_awal'])) {
+                            $conditions[] = "k.tanggal >= ?";
+                            $params[] = $_GET['tanggal_awal'];
+                            $types .= "s";
+                        }
+                        if (!empty($_GET['tanggal_akhir'])) {
+                            $conditions[] = "k.tanggal <= ?";
+                            $params[] = $_GET['tanggal_akhir'];
+                            $types .= "s";
+                        }
+
+                        if (!empty($conditions)) {
+                            $base_sql .= " WHERE " . implode(" AND ", $conditions);
+                        }
+                        
+                        $base_sql .= " ORDER BY k.tanggal DESC, k.waktu_awal DESC";
+
+                        $stmt = mysqli_prepare($kon, $base_sql);
+                        if (!empty($params)) {
+                            mysqli_stmt_bind_param($stmt, $types, ...$params);
+                        }
+                        mysqli_stmt_execute($stmt);
+                        $hasil = mysqli_stmt_get_result($stmt);
+                        
+                        $no = 0;
+                        while ($data = mysqli_fetch_array($hasil)):
+                        $no++;
+                    ?>
+                    <tr>
+                        <td><?php echo $no; ?></td>
+                        <td><?php echo htmlspecialchars($data['nama']); ?></td>
+                        <td>
+                            <?php 
+                                echo MendapatkanHari(strtolower($data["hari"])) . ", " . 
+                                     date('d', strtotime($data['tanggal'])) . ' ' . 
+                                     MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' . 
+                                     date('Y', strtotime($data['tanggal']));
+                            ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($data['waktu']); ?></td>
+                        <td><?php echo htmlspecialchars($data['kegiatan']); ?></td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-warning btn-sm ubah_kegiatan" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_kegiatan="<?php echo $data['id_kegiatan']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Kegiatan">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <a href="apps/data_kegiatan/hapus.php?id_kegiatan=<?php echo $data['id_kegiatan']; ?>" class="btn btn-danger btn-sm btn-hapus-kegiatan" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Kegiatan">
+                                <i class="bi bi-trash3-fill"></i>
+                            </a>
+                            <button type="button" class="btn btn-primary btn-sm cetak_kegiatan" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Laporan">
+                                <i class="bi bi-printer-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
+<!-- [DIUBAH] Modal dengan gaya Bootstrap 5 -->
+<div class="modal fade" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="judul"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="tampil_data"></div>  
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- JAVASCRIPT KHUSUS UNTUK HALAMAN INI -->
+<!-- ======================================================= -->
 <script>
-    // Tambah kegiatan dari admin
+    // Inisialisasi Tooltip Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // AJAX untuk Tambah Kegiatan
     $('#tambah_kegiatan').on('click',function(){
         $.ajax({
             url: 'apps/data_kegiatan/tambah.php',
             method: 'post',
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Tambah Kegiatan';
+                document.getElementById("judul").innerHTML='Tambah Kegiatan Harian';
             }
         });
-        // Membuka modal
-        $('#modal').modal('show');
+        var myModal = new bootstrap.Modal(document.getElementById('modal'));
+        myModal.show();
     });
-</script>
 
-<script>
-    // Mengubah kegiatan dari admin
+    // AJAX untuk Edit Kegiatan
     $('.ubah_kegiatan').on('click',function(){
         var id_mahasiswa = $(this).attr("id_mahasiswa");
         var id_kegiatan = $(this).attr("id_kegiatan");
         $.ajax({
             url: 'apps/data_kegiatan/edit.php',
             method: 'POST',
-            data: {id_mahasiswa: id_mahasiswa, 
-                    id_kegiatan: id_kegiatan},
+            data: {id_mahasiswa: id_mahasiswa, id_kegiatan: id_kegiatan},
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Edit Kegiatan';
+                document.getElementById("judul").innerHTML='Edit Kegiatan Harian';
             }
         });
-        // Membuka modal
-        $('#modal').modal('show');
+        var myModal = new bootstrap.Modal(document.getElementById('modal'));
+        myModal.show();
     });
-</script>
-
-<script>
-// fungsi hapus mahasiswa
-   $('.btn-hapus-kegiatan').on('click',function(){
-        konfirmasi=confirm("Yakin ingin menghapus kegiatan ini?")
-        if (konfirmasi){
-            return true;
-        }else {
-            return false;
-        }
+    
+    // Konfirmasi Hapus
+    $('.btn-hapus-kegiatan').on('click',function(){
+        return confirm("Apakah Anda yakin ingin menghapus kegiatan ini?");
     });
-</script>
 
-<script>
-    // cetak absensi
+    // AJAX untuk Cetak Laporan
     $('.cetak_kegiatan').on('click',function(){
         var id_mahasiswa = $(this).attr("id_mahasiswa");
         $.ajax({
@@ -241,10 +227,10 @@
             data: {id_mahasiswa: id_mahasiswa},
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Cetak Kegiatan';
+                document.getElementById("judul").innerHTML='Cetak Laporan Kegiatan';
             }
         });
-        // Membuka modal
-        $('#modal').modal('show');
+        var myModal = new bootstrap.Modal(document.getElementById('modal'));
+        myModal.show();
     });
 </script>

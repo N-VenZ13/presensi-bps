@@ -1,195 +1,176 @@
 <?php
 session_start();
-    if (isset($_POST['edit_mahasiswa'])) {
-        include '../../config/database.php';
-        function input($data) {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
+include '../../config/database.php';
 
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            mysqli_query($kon,"START TRANSACTION");
-            $id_mahasiswa=input($_POST["id_mahasiswa"]);
-            $nama=input($_POST["nama"]);
-            $universitas=input($_POST["universitas"]);
-            $jurusan=input($_POST["jurusan"]);
-            $nim=input($_POST["nim"]);
-            $mulai_magang=input($_POST["mulai_magang"]);
-            $akhir_magang=input($_POST["akhir_magang"]);
-            $no_telp=input($_POST["no_telp"]);
-            $alamat=input($_POST["alamat"]);
-            $ekstensi_diperbolehkan	= array('png','jpg','jpeg','gif');
-            $foto = $_FILES['foto']['name'];
-            $x = explode('.', $foto);
-            $ekstensi = strtolower(end($x));
-            $ukuran	= $_FILES['foto']['size'];
-            $file_tmp = $_FILES['foto']['tmp_name'];
-            $pengguna=input($_POST["pengguna"]);
+// =======================================================
+// BAGIAN 1: PROSES UPDATE DATA SETELAH FORM DISUBMIT
+// =======================================================
+if (isset($_POST['edit_mahasiswa'])) {
 
-            $foto_saat_ini=$_POST['foto_saat_ini'];
-            $foto_baru = $_FILES['foto_baru']['name'];
-            $ekstensi_diperbolehkan	= array('png','jpg','jpeg','gif');
-            $x = explode('.', $foto_baru);
-            $ekstensi = strtolower(end($x));
-            $ukuran	= $_FILES['foto_baru']['size'];
-            $file_tmp = $_FILES['foto_baru']['tmp_name'];
+    // Keluar jika tidak ada session admin
+    if ($_SESSION['level'] != 'Admin') {
+        die("Akses ditolak.");
+    }
 
+    // Memulai transaksi
+    mysqli_query($kon, "START TRANSACTION");
 
-        if (!empty($foto_baru)){
-            if(in_array($ekstensi, $ekstensi_diperbolehkan) === true){
-                move_uploaded_file($file_tmp, 'foto/'.$foto_baru);
-                if ($foto_saat_ini!='foto_default.png'){
-                    unlink("foto/".$foto_saat_ini);
-                }
-                $sql="UPDATE tbl_mahasiswa SET
-                    nama='$nama',
-                    universitas='$universitas',
-                    jurusan='$jurusan',
-                    nim='$nim',
-                    mulai_magang='$mulai_magang',
-                    akhir_magang='$akhir_magang',
-                    alamat='$alamat',
-                    no_telp='$no_telp',
-                    foto='$foto_baru
-                    WHERE id_mahasiswa=$id_mahasiswa";
+    // Mengambil data dengan pengamanan dasar
+    $id_mahasiswa = $_POST["id_mahasiswa"];
+    $nama = htmlspecialchars($_POST["nama"]);
+    $universitas = htmlspecialchars($_POST["universitas"]);
+    $jurusan = htmlspecialchars($_POST["jurusan"]);
+    $nim = htmlspecialchars($_POST["nim"]);
+    $mulai_magang = $_POST["mulai_magang"];
+    $akhir_magang = $_POST["akhir_magang"];
+    $no_telp = htmlspecialchars($_POST["no_telp"]);
+    $alamat = htmlspecialchars($_POST["alamat"]);
+    $foto_saat_ini = $_POST['foto_saat_ini'];
+    $foto_final = $foto_saat_ini; // Set foto final ke foto saat ini sebagai default
+
+    // Proses upload foto baru jika ada
+    if (isset($_FILES['foto_baru']) && $_FILES['foto_baru']['error'] == 0) {
+        $ekstensi_diperbolehkan = array('png','jpg','jpeg','gif');
+        $nama_foto = $_FILES['foto_baru']['name'];
+        $x = explode('.', $nama_foto);
+        $ekstensi = strtolower(end($x));
+        $file_tmp = $_FILES['foto_baru']['tmp_name'];
+
+        if (in_array($ekstensi, $ekstensi_diperbolehkan)) {
+            // Ambil kode mahasiswa untuk nama file unik
+            $stmt_kode = mysqli_prepare($kon, "SELECT kode_mahasiswa FROM tbl_mahasiswa WHERE id_mahasiswa=?");
+            mysqli_stmt_bind_param($stmt_kode, "i", $id_mahasiswa);
+            mysqli_stmt_execute($stmt_kode);
+            $result_kode = mysqli_stmt_get_result($stmt_kode);
+            $data_kode = mysqli_fetch_assoc($result_kode);
+            $kode_mahasiswa = $data_kode['kode_mahasiswa'];
+
+            // Buat nama file unik
+            $foto_final = $kode_mahasiswa . '_' . time() . '.' . $ekstensi;
+
+            // Pindahkan file dan hapus foto lama
+            if (move_uploaded_file($file_tmp, 'foto/' . $foto_final)) {
+                if ($foto_saat_ini != 'foto_default.png' && file_exists('foto/' . $foto_saat_ini)) {
+                    unlink('foto/' . $foto_saat_ini);
                 }
             } else {
-                $sql="UPDATE tbl_mahasiswa SET
-                    nama='$nama',
-                    universitas='$universitas',
-                    jurusan='$jurusan',
-                    nim='$nim',
-                    mulai_magang='$mulai_magang',
-                    akhir_magang='$akhir_magang',
-                    no_telp='$no_telp',
-                    alamat='$alamat'
-                    WHERE id_mahasiswa=$id_mahasiswa";
-            }
-
-            $edit_mahasiswa=mysqli_query($kon,$sql);
-            if ($edit_mahasiswa) {
-                mysqli_query($kon,"COMMIT");
-                header("Location:../../index.php?page=mahasiswa&edit=berhasil");
-            } else {
-                mysqli_query($kon,"ROLLBACK");
-                header("Location:../../index.php?page=mahasiswa&edit=gagal");
+                $foto_final = $foto_saat_ini; // Jika upload gagal, kembalikan ke foto lama
             }
         }
     }
+
+    // [PERBAIKAN KEAMANAN] Update tbl_mahasiswa menggunakan prepared statement
+    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, universitas=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, foto=? WHERE id_mahasiswa=?";
+    $stmt_update = mysqli_prepare($kon, $sql_update);
+    mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $universitas, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
+    $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
+
+    // Finalisasi Transaksi
+    if ($edit_mahasiswa) {
+        mysqli_query($kon, "COMMIT");
+        header("Location:../../index.php?page=mahasiswa&edit=berhasil");
+    } else {
+        mysqli_query($kon, "ROLLBACK");
+        header("Location:../../index.php?page=mahasiswa&edit=gagal");
+    }
+    exit();
+}
+
+
+// =======================================================
+// BAGIAN 2: MENGAMBIL DATA UNTUK DITAMPILKAN DI FORM
+// =======================================================
+$id_mahasiswa = $_POST["id_mahasiswa"];
+// [PERBAIKAN KEAMANAN] Menggunakan prepared statement untuk mengambil data
+$stmt_select = mysqli_prepare($kon, "SELECT * FROM tbl_mahasiswa WHERE id_mahasiswa = ? LIMIT 1");
+mysqli_stmt_bind_param($stmt_select, "i", $id_mahasiswa);
+mysqli_stmt_execute($stmt_select);
+$hasil = mysqli_stmt_get_result($stmt_select);
+$data = mysqli_fetch_array($hasil);
 ?>
 
-<?php 
-    include '../../config/database.php';
-    $id_mahasiswa=$_POST["id_mahasiswa"];
-    $sql="select * from tbl_mahasiswa where id_mahasiswa=$id_mahasiswa limit 1";
-    $hasil=mysqli_query($kon,$sql);
-    $data = mysqli_fetch_array($hasil); 
-?>
-
+<!-- ======================================================= -->
+<!-- BAGIAN 3: TAMPILAN FORM (YANG MUNCUL DI MODAL) -->
+<!-- ======================================================= -->
 <form action="apps/mahasiswa/edit.php" method="post" enctype="multipart/form-data">
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Nama Lengkap :</label>
-                <input type="hidden" name="id_mahasiswa" class="form-control" value="<?php echo $data['id_mahasiswa'];?>">
-                <input type="text" name="nama" class="form-control" value="<?php echo $data['nama'];?>" placeholder="Masukan Nama Mahasiswa" required>
+    <!-- Input tersembunyi untuk ID dan foto saat ini -->
+    <input type="hidden" name="id_mahasiswa" value="<?php echo $data['id_mahasiswa']; ?>">
+    <input type="hidden" name="foto_saat_ini" value="<?php echo $data['foto']; ?>">
 
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Universitas :</label>
-                <input type="text" name="universitas" class="form-control" value="<?php echo $data['universitas'];?>" placeholder="Masukan Nama Universitas" required>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Jurusan :</label>
-                <input type="text" name="jurusan" class="form-control" value="<?php echo $data['jurusan'];?>" placeholder="Masukan Nama Jurusan" required>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Nomor Induk Mahasiswa :</label>
-                <input type="text" name="nim" class="form-control" value="<?php echo $data['nim'];?>" placeholder="Masukan Nomor Induk Mahasiswa" required>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="form-group">
-                <label>Mulai Magang :</label>
-                <input type="date" name="mulai_magang" class="form-control" value="<?php echo $data['mulai_magang'];?>" required>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="form-group">
-                <label>Akhir Magang :</label>
-                <input type="date" name="akhir_magang" class="form-control" value="<?php echo $data['akhir_magang'];?>" required>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>No Telp :</label>
-                <input type="text" name="no_telp" class="form-control" placeholder="Masukan No Telp" value="<?php echo $data['no_telp'];?>" required>
-            </div>
-        </div>
-    </div>
     <div class="row">
-        <div class="col-sm-7">
-            <div class="form-group">
-                <label>Alamat :</label>
-                <textarea class="form-control" name="alamat" rows="4" id="alamat"><?php echo $data['alamat'];?></textarea>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label for="nama" class="form-label">Nama Lengkap</label>
+            <input type="text" name="nama" id="nama" class="form-control" value="<?php echo htmlspecialchars($data['nama']); ?>" required>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-3">
-        <label>Foto :</label><br>
-            <img src="apps/mahasiswa/foto/<?php echo $data['foto'];?>" id="preview" width="90%" class="rounded" alt="Cinque Terre">
-            <input type="hidden" name="foto_saat_ini" value="<?php echo $data['foto'];?>" class="form-control" />
+        <div class="col-md-6 mb-3">
+            <label for="nim" class="form-label">Nomor Induk Mahasiswa (NIM)</label>
+            <input type="text" name="nim" id="nim" class="form-control" value="<?php echo htmlspecialchars($data['nim']); ?>" required>
         </div>
-        <div class="col-sm-4">
-            <div id="msg"></div>
-            <label>Upload Foto Baru:</label>
-            <input type="file" name="foto_baru" class="file" >
-                <div class="input-group my-3">
-                    <input type="text" class="form-control" disabled placeholder="Upload File" id="file">
-                    <div class="input-group-append">
-                            <button type="button" id="pilih_foto" class="browse btn btn-info"><i class="fa fa-search"></i> Pilih Foto</button>
-                    </div>
+        <div class="col-md-6 mb-3">
+            <label for="universitas" class="form-label">Universitas</label>
+            <input type="text" name="universitas" id="universitas" class="form-control" value="<?php echo htmlspecialchars($data['universitas']); ?>" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="jurusan" class="form-label">Jurusan</label>
+            <input type="text" name="jurusan" id="jurusan" class="form-control" value="<?php echo htmlspecialchars($data['jurusan']); ?>" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="mulai_magang" class="form-label">Mulai Magang</label>
+            <input type="date" name="mulai_magang" id="mulai_magang" class="form-control" value="<?php echo $data['mulai_magang']; ?>" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="akhir_magang" class="form-label">Akhir Magang</label>
+            <input type="date" name="akhir_magang" id="akhir_magang" class="form-control" value="<?php echo $data['akhir_magang']; ?>" required>
+        </div>
+        <div class="col-md-12 mb-3">
+            <label for="no_telp" class="form-label">No. Telepon</label>
+            <input type="text" name="no_telp" id="no_telp" class="form-control" value="<?php echo htmlspecialchars($data['no_telp']); ?>" required>
+        </div>
+        <div class="col-md-12 mb-3">
+            <label for="alamat" class="form-label">Alamat</label>
+            <textarea class="form-control" name="alamat" id="alamat" rows="3"><?php echo htmlspecialchars($data['alamat']); ?></textarea>
+        </div>
+        <div class="col-md-12 mb-3">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Foto Saat Ini:</label>
+                    <img src="apps/mahasiswa/foto/<?php echo $data['foto']; ?>" id="preview" class="img-thumbnail" alt="Foto Profil">
                 </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <div class="form-group">
-                <br>
-                <button type="submit" name="edit_mahasiswa" id="Submit" class="btn btn-warning" ><i class="fa fa-edit"></i> Update</button>
+                <div class="col-md-9">
+                    <label for="foto_baru" class="form-label">Ganti Foto (Opsional)</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" disabled placeholder="Pilih foto baru..." id="file">
+                        <button type="button" id="pilih_foto" class="btn btn-outline-secondary"><i class="bi bi-search"></i> Pilih File</button>
+                    </div>
+                    <input type="file" name="foto_baru" class="file d-none">
+                    <div class="form-text">Biarkan kosong jika tidak ingin mengganti foto.</div>
+                </div>
             </div>
         </div>
+    </div>
+    <hr>
+    <div class="d-flex justify-content-end">
+        <button type="submit" name="edit_mahasiswa" class="btn btn-warning">
+            <i class="bi bi-save"></i> Update
+        </button>
     </div>
 </form>
 
-<style>
-    .file {
-    visibility: hidden;
-    position: absolute;
-    }
-</style>
-
+<!-- [TETAP] Fungsionalitas input file kustom Anda. Tidak perlu diubah. -->
 <script>
     $(document).on("click", "#pilih_foto", function() {
-    var file = $(this).parents().find(".file");
-    file.trigger("click");
+        var file = $(this).closest('.col-md-9').find(".file");
+        file.trigger("click");
     });
+
     $('input[type="file"]').change(function(e) {
-    var fileName = e.target.files[0].name;
-    $("#file").val(fileName);
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById("preview").src = e.target.result;
-    };
-    reader.readAsDataURL(this.files[0]);
+        var fileName = e.target.files[0].name;
+        $("#file").val(fileName);
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("preview").src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
     });
 </script>
