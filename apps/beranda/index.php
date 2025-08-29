@@ -6,22 +6,21 @@
         <li class="active">Beranda</li>
     </ol>
 </div>
-<!--/.row-->
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">Beranda</div>
-            <div class="panel-body">
+
+<div class="panel panel-container">
 
             <!--Menampilkan Nama Pengguna Sesuai Level -->
             <?php if ($_SESSION['level']=='Admin' or $_SESSION['level']=='Admin'):?>
-                <h3>Selamat Datang,  <?php echo  $_SESSION["nama_admin"]; ?>.</h3>
+            <center><h2><b><br>Selamat Datang</b>,  <?php echo  $_SESSION["nama_admin"]; ?>.</h2><br><br><br></center>
             <?php endif; ?>
             <?php if ($_SESSION['level']=='Mahasiswa' or $_SESSION['level']=='mahasiswa'):?>
-                <h3>Selamat Datang, <?php echo  $_SESSION["nama_mahasiswa"]; ?>.</h3>
+            <center> <h2><b><br>Selamat Datang</b>, <?php echo  $_SESSION["nama_mahasiswa"]; ?>.</h2><br><br><br></center>
             <?php endif; ?>
             <!-- Menampilkan Nama Pengguna Sesuai Level -->
 
+<div class="card text-center">
+    <div class="card-body">
+    
             <!-- Mengambil data table tbl_site -->
             <?php 
                 //Mengambil profil aplikasi
@@ -32,8 +31,19 @@
             ?>
             <!-- Menhambil data table tbl_site -->
 
+            <br><img src="logo.png" alt="logo" width="150">
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+
             <!-- Info Aplikasi -->
-            <p>Selamat Datang di Aplikasi Absensi dan Kegiatan Harian Mahasiswa berbasis Web. Sebuah sistem yang memungkinkan para Mahasiswa PKL di <?php echo $row['nama_instansi'];?> untuk melalukan absensi dan mencatat kegiatan harian dari website. Sistem ini diharapkan dapat memberi kemudahan setiap Mahasiswa PKL untuk melakukan absensi dan mencatat kegiatan harian.</p>
+            <center><p>Selamat Datang di<b> Aplikasi Absensi dan Kegiatan Harian Mahasiswa </b>berbasis web. 
+                <br>Aplikasi ini dirancang untuk memudahkan Mahasiswa PKL di<b> <?php echo $row['nama_instansi'];?> </b>
+                <br>dalam melakukan absensi serta mencatat kegiatan harian secara digital, cepat, dan praktis, 
+                sehingga <br>memudahkan mahasiswa maupun pembimbing dalam mengelola 
+                dan memantau aktivitas selama masa PKL.</center>
             <!-- Info Aplikasi -->
             
             </div>

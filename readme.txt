@@ -1,6 +1,6 @@
 Login
-User : pradana (admin)
-Pass : 123456
+User : rani (admin)
+Pass : 121212
 
-User : 062030701635 (mahasiswa)
-Pass : 123456
+User : 062330801639 (mahasiswa)
+Pass : 121212
