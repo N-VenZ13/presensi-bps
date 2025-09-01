@@ -1,125 +1,80 @@
 :root {
-    --primary-color: #F37321;
-    --sidebar-bg: #212529;
-    --sidebar-link-color: #adb5bd;
-    --sidebar-link-hover: #ffffff;
-    --sidebar-link-active: #ffffff;
+  --primary-color: #f37321;
+  --sidebar-bg: #212529;
+  --sidebar-link-color: #adb5bd;
+  --sidebar-link-hover: #ffffff;
+  --sidebar-link-active: #ffffff;
 }
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f4f7f6;
+  font-family: "Poppins", sans-serif;
+  background-color: #f4f7f6;
+  overflow-x: hidden;
 }
-.sidebar {
-    width: 260px;
-    min-height: 100vh;
-    background-color: var(--sidebar-bg);
-    padding-top: 1.5rem;
-    transition: all 0.3s;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
-}
-.sidebar-header {
-    color: white;
-    margin-bottom: 2rem;
-    text-align: center;
-    padding: 0 1rem;
-}
-.sidebar-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid rgba(255,255,255,0.2);
-}
-.sidebar-header .user-name {
-    font-weight: 600;
-    font-size: 1rem;
-}
-.sidebar-header .user-level {
-    font-size: 0.85rem;
-    color: #ccc;
-}
-.sidebar .nav-link {
-    color: var(--sidebar-link-color);
-    margin: 0.2rem 0.5rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-}
-.sidebar .nav-link .bi {
-    margin-right: 0.75rem;
-    font-size: 1.2rem;
-    width: 24px;
-    text-align: center;
-}
-.sidebar .nav-link:hover {
-    color: var(--sidebar-link-hover);
-    background-color: rgba(255, 255, 255, 0.1);
-}
-.sidebar .nav-link.active {
-    color: var(--sidebar-link-active);
-    background-color: var(--primary-color);
-    font-weight: 500;
-}
-.main-content {
-    margin-left: 260px; /* Sebesar lebar sidebar */
-    width: calc(100% - 260px);
-}
-.navbar-top {
-    background-color: #ffffff;
-    border-bottom: 1px solid #dee2e6;
-    padding: 0.75rem 1.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 99;
-}
-.content-area {
-    padding: 1.5rem;
-}
-.card {
-    border: none;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+
+/* ======================================================= */
+/* STRUKTUR UTAMA */
+/* ======================================================= */
 .wrapper {
-    overflow-x: hidden;
-    position: relative;
-    width: 100%;
+  /* Ini adalah pembungkus utama */
 }
-
 .sidebar {
-    width: 260px;
-    min-height: 100vh;
-    background-color: var(--sidebar-bg);
-    padding-top: 1.5rem;
-    transition: all 0.3s; /* [DIUBAH] Tambahkan transisi */
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
+  width: 260px;
+  min-height: 100vh;
+  background-color: var(--sidebar-bg);
+  transition: margin-left 0.3s ease-in-out;
+  flex-shrink: 0;
+  z-index: 100;
 }
-
-/* ... (kode dari .sidebar-header sampai .sidebar .nav-link.active tetap sama) ... */
-
 .main-content {
-    margin-left: 260px; /* Sebesar lebar sidebar */
-    width: calc(100% - 260px);
-    transition: all 0.3s; /* [BARU] Tambahkan transisi */
+  flex-grow: 1;
 }
 
-/* [BARU] Aturan CSS untuk kondisi Toggled (sidebar disembunyikan) */
+/* ======================================================= */
+/* LOGIKA TOGGLE (Kondisi saat wrapper memiliki class .toggled) */
+/* ======================================================= */
 .wrapper.toggled .sidebar {
-    margin-left: -260px;
+  margin-left: -260px; /* Sembunyikan sidebar ke kiri */
 }
 
-.wrapper.toggled .main-content {
+/* ======================================================= */
+/* PERILAKU DEFAULT UNTUK LAYAR KECIL (MOBILE) */
+/* ======================================================= */
+@media (max-width: 768px) {
+  /* Di mobile, sidebar tersembunyi secara default */
+  .sidebar {
+    position: fixed; /* Penting untuk overlay */
+    left: -260px; /* Sembunyikan ke kiri */
+    transition: left 0.3s ease-in-out;
+  }
+  .wrapper.toggled .sidebar {
+    left: 0; /* Munculkan sidebar dari kiri */
     margin-left: 0;
-    width: 100%;
+  }
+  /* Saat sidebar mobile muncul, kita bisa tambahkan overlay gelap */
+  .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 99;
+  }
+  .wrapper.toggled .sidebar-overlay {
+      display: block;
+  }
 }
 
-#sidebarToggle {
-    text-decoration: none;
-}
+/* ======================================================= */
+/* GAYA LAINNYA (TIDAK BERUBAH) */
+/* ======================================================= */
+.sidebar-header { color: white; margin-bottom: 2rem; text-align: center; padding: 1.5rem 1rem 0 1rem; }
+.sidebar-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.2); }
+.sidebar-header .user-name { font-weight: 600; font-size: 1rem; margin-top: 0.5rem; }
+.sidebar-header .user-level { font-size: 0.85rem; color: #ccc; }
+.sidebar .nav-link { color: var(--sidebar-link-color); margin: 0.2rem 0.5rem; border-radius: 0.5rem; display: flex; align-items: center; padding: 0.75rem 1rem; }
+.sidebar .nav-link .bi { margin-right: 0.75rem; font-size: 1.2rem; width: 24px; text-align: center; }
+.sidebar .nav-link:hover { color: var(--sidebar-link-hover); background-color: rgba(255, 255, 255, 0.1); }
+.sidebar .nav-link.active { color: var(--sidebar-link-active); background-color: var(--primary-color); font-weight: 500; }
+.navbar-top { background-color: #ffffff; border-bottom: 1px solid #dee2e6; padding: 0.75rem 1.5rem; position: sticky; top: 0; z-index: 98; }
+.content-area { padding: 1.5rem; }
+.card { border: none; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+#sidebarToggle { text-decoration: none; }

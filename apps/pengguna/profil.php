@@ -1,131 +1,160 @@
-<div class="row">
+<?php
+    if ($_SESSION["level"] != 'Mahasiswa') {
+        echo "<div class='alert alert-danger'>Tidak memiliki Hak Akses</div>";
+        exit;
+    }
+
+    // [PERBAIKAN KEAMANAN] Menggunakan prepared statement untuk mengambil data
+    $kode_pengguna = $_SESSION["kode_pengguna"];
+    $stmt = mysqli_prepare($kon, "SELECT * FROM tbl_mahasiswa WHERE kode_mahasiswa = ? LIMIT 1");
+    mysqli_stmt_bind_param($stmt, "s", $kode_pengguna);
+    mysqli_stmt_execute($stmt);
+    $hasil = mysqli_stmt_get_result($stmt);
+    $data = mysqli_fetch_array($hasil);
+?>
+
+<nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li><a href="index.php?page=beranda">
-                <em class="fa fa-home"></em>
-            </a></li>
-        <li class="active">Profil</li>
+        <li class="breadcrumb-item"><a href="index.php?page=beranda">Beranda</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Profil Saya</li>
     </ol>
-</div><!--/.row-->
+</nav>
 
 <div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-            Profil
-            <span class="pull-right clickable panel-toggle panel-button-tab-left"><em class="fa fa-toggle-up"></em></span></div>
-            <div class="panel-body">
-
-            <?php 
-                //Menghubungkan database
-                include 'config/database.php';
-                //Mengambil kode_pengguna dari session
-                $kode_pengguna=$_SESSION["kode_pengguna"];
-                //Query untuk menampilkan data mahasiswa dari tbl_mahasiswa
-                $sql="SELECT * FROM tbl_mahasiswa WHERE kode_mahasiswa='$kode_pengguna' LIMIT 1";
-                //Menyimpan hasil query
-                $hasil=mysqli_query($kon,$sql);
-                //Menyimpan hasil jadi array
-                $data = mysqli_fetch_array($hasil); 
-            ?>
-
-            <?php
-                //Validasi Untuk menampilkan memberitahuan saat mahasiswa mengubah password
-                if (isset($_GET['pengguna'])) {
-                    if ($_GET['pengguna']=='berhasil'){
-                        echo"<div class='alert alert-success'><strong>Berhasil!</strong> Ubah Password berhasil</div>";
-                    }else if ($_GET['pengguna']=='gagal'){
-                        echo"<div class='alert alert-danger'><strong>Gagal!</strong> Ubah Password gagal</div>";
-                    }    
-                }
-            ?>
-                
-                <table class="table">
-                    <tbody>
-                        <tr>
-                            <td>Nama</td>
-                            <td width="75%">: <?php echo $data['nama'];?></td>
-                        </tr>
-                        <tr>
-                            <td>Nomor Induk Mahasiswa</td>
-                            <td width="75%">: <?php echo $data['nim'];?></td>
-                        </tr>
-                        <tr>
-                            <td>Universitas</td>
-                            <td width="75%">: <?php echo $data['universitas'];?></td>
-                        </tr>
-                        <tr>
-                            <td>Jurusan</td>
-                            <td width="75%">: <?php echo $data['jurusan']; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Tanggal Masuk</td>
-                            <td width="75%">: <?php echo date('d/m/Y', strtotime($data["mulai_magang"]));?></td>
-                        </tr>
-                        <tr>
-                            <td>Tanggal Selesai</td>
-                            <td width="75%">: <?php echo date('d/m/Y', strtotime($data["akhir_magang"]));?></td>
-                        </tr>
-                        <tr>
-                            <td>No Telp</td>
-                            <td width="75%">: <?php echo $data['no_telp'];?></td>
-                        </tr>
-                        <tr>
-                            <td>Alamat</td>
-                            <td width="75%">: <?php echo $data['alamat'];?></td>
-                        </tr>
-                        <tr>
-                            <td>Foto</td>
-                            <td width="20%">: <img src="apps/mahasiswa/foto/<?php echo $data['foto']; ?>" id="preview" width="25%" class="rounded" alt="Cinque Terre"></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="form-group">
-                <button kode_mahasiswa="<?php echo $data['kode_mahasiswa'];?>" class="password btn btn-info btn-circle" ><i class="fa fa-key"></i>Password</button>
+    <!-- Kolom Kiri: Foto dan Info Utama -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <img src="apps/mahasiswa/foto/<?php echo htmlspecialchars($data['foto']); ?>" alt="Foto Profil" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                <h5 class="my-3"><?php echo htmlspecialchars($data['nama']); ?></h5>
+                <p class="text-muted mb-1">NIM: <?php echo htmlspecialchars($data['nim']); ?></p>
+                <p class="text-muted mb-4"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></p>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUbahFoto">
+                        <i class="bi bi-camera-fill"></i> Ubah Foto
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</div><!--/.row-->
 
-<!-- Modal -->
-<div class="modal fade" id="modal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-        <div class="modal-header">
-            <h4 class="modal-title" id="judul"></h4>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-        </div>
-
-        <div class="modal-body">
-            <div id="tampil_data">
-                    <!-- Data akan di load menggunakan AJAX -->                   
-            </div>  
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
-        </div>
-
+    <!-- Kolom Kanan: Detail dan Form Edit -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <!-- Notifikasi -->
+                <?php
+                    if (isset($_GET['edit_profil'])) {
+                        if ($_GET['edit_profil'] == 'berhasil') echo "<div class='alert alert-success'><strong>Berhasil!</strong> Profil Anda telah diupdate.</div>";
+                        else echo "<div class='alert alert-danger'><strong>Gagal!</strong> Profil gagal diupdate.</div>";
+                    }
+                    if (isset($_GET['edit_foto'])) {
+                        if ($_GET['edit_foto'] == 'berhasil') echo "<div class='alert alert-success'><strong>Berhasil!</strong> Foto profil telah diupdate.</div>";
+                        else echo "<div class='alert alert-danger'><strong>Gagal!</strong> Foto profil gagal diupdate.</div>";
+                    }
+                     if (isset($_GET['ubah_password'])) {
+                        if ($_GET['ubah_password'] == 'berhasil') echo "<div class='alert alert-success'><strong>Berhasil!</strong> Password Anda telah diubah.</div>";
+                        else echo "<div class='alert alert-danger'><strong>Gagal!</strong> Password gagal diubah, pastikan password lama Anda benar.</div>";
+                    }
+                ?>
+                <form action="apps/pengguna/proses_edit_profil.php" method="post">
+                    <input type="hidden" name="id_mahasiswa" value="<?php echo $data['id_mahasiswa']; ?>">
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><h6 class="mb-0">Nama Lengkap</h6></div>
+                        <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($data['nama']); ?></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><h6 class="mb-0">Asal Instansi</h6></div>
+                        <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><h6 class="mb-0">Jurusan</h6></div>
+                        <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($data['jurusan']); ?></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-3"><label for="no_telp" class="mb-0">No. Telepon</label></div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="no_telp" name="no_telp" value="<?php echo htmlspecialchars($data['no_telp']); ?>">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-3"><label for="alamat" class="mb-0">Alamat</label></div>
+                        <div class="col-sm-9">
+                           <textarea class="form-control" name="alamat" id="alamat" rows="3"><?php echo htmlspecialchars($data['alamat']); ?></textarea>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 text-secondary">
+                            <button type="submit" name="simpan_profil" class="btn btn-primary px-4">Simpan Perubahan</button>
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-toggle="modal" data-bs-target="#modalUbahPassword">Ubah Password</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-<!-- Modal -->
 
-<script>
-    // Setting password mahasiswa
-    $('.password').on('click',function(){
-        var kode_mahasiswa = $(this).attr("kode_mahasiswa");
-        $.ajax({
-            url: 'apps/pengguna/ubah_password.php',
-            method: 'post',
-            data: {kode_mahasiswa:kode_mahasiswa},
-            success:function(data){
-                $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Ubah Password';
-            }
-        });
-        // Membuka modal
-        $('#modal').modal('show');
-    });
-</script>
+<!-- Modal Ubah Foto -->
+<div class="modal fade" id="modalUbahFoto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ubah Foto Profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="apps/pengguna/proses_edit_profil.php" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="id_mahasiswa" value="<?php echo $data['id_mahasiswa']; ?>">
+                    <input type="hidden" name="foto_saat_ini" value="<?php echo $data['foto']; ?>">
+                    <p>Pilih foto baru untuk diunggah. File akan otomatis di-resize.</p>
+                    <input type="file" name="foto_baru" class="form-control" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" name="simpan_foto" class="btn btn-primary">Unggah Foto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ubah Password -->
+<div class="modal fade" id="modalUbahPassword" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ubah Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="apps/pengguna/proses_edit_profil.php" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="kode_pengguna" value="<?php echo $kode_pengguna; ?>">
+                    <div class="mb-3">
+                        <label class="form-label">Password Lama</label>
+                        <input type="password" name="password_lama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password Baru</label>
+                        <input type="password" name="password_baru" class="form-control" required>
+                    </div>
+                     <div class="mb-3">
+                        <label class="form-label">Konfirmasi Password Baru</label>
+                        <input type="password" name="konfirmasi_password" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" name="simpan_password" class="btn btn-primary">Simpan Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

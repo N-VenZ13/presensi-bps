@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // [PERBAIKAN KEAMANAN] Menggunakan Prepared Statement untuk mencegah SQL Injection
     $sql = "SELECT u.id_user, u.kode_pengguna, u.username, u.password, u.level, 
                    a.nama AS nama_admin, a.nip,
-                   m.id_mahasiswa, m.nama AS nama_mahasiswa, m.universitas, m.foto, m.nim
+                   m.id_mahasiswa, m.nama AS nama_mahasiswa, m.nama_instansi_asal, m.foto, m.nim
             FROM tbl_user u
             LEFT JOIN tbl_admin a ON u.kode_pengguna = a.kode_admin
             LEFT JOIN tbl_mahasiswa m ON u.kode_pengguna = m.kode_mahasiswa
@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else if ($row['level'] == 'Mahasiswa') {
                 $_SESSION["id_mahasiswa"] = $row["id_mahasiswa"];
                 $_SESSION["nama_mahasiswa"] = $row["nama_mahasiswa"];
-                $_SESSION["universitas"] = $row["universitas"];
+                $_SESSION["nama_instansi_asal"] = $row["nama_instansi_asal"];
                 $_SESSION["foto"] = $row["foto"];
                 $_SESSION["nim"] = $row["nim"];
             }
@@ -92,7 +92,8 @@ $site_info = mysqli_fetch_array($query_site);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- [DIUBAH] Judul dan Favicon dinamis dari DB -->
-    <title>Login | <?php echo htmlspecialchars($site_info['nama_instansi']); ?></title>
+    <!-- <title>Login | <?php echo htmlspecialchars($site_info['nama_instansi']); ?></title> -->
+    <title>Login | Sistem Presensi & Aktivitas Magang</title>
     <link rel="shortcut icon" href="apps/pengaturan/logo/<?php echo htmlspecialchars($site_info['logo']); ?>">
 
 
@@ -114,7 +115,8 @@ $site_info = mysqli_fetch_array($query_site);
             <div class="card-body">
                 <div class="text-center mb-4">
                     <img src="/absensi-magang/source/img/logo-bps.png" alt="Logo BPS" class="login-logo">
-                    <h4 class="mt-3 mb-1">Sistem Absensi Magang</h4>
+                    <h5 class="mt-3 mb-1">Sistem Presensi & Aktivitas Magang</h5>
+                    <!-- <h4 class="mt-3 mb-1">SIAMANG</h4> -->
                     <p class="text-muted"><?php echo htmlspecialchars($site_info['nama_instansi']); ?></p>
                 </div>
                 

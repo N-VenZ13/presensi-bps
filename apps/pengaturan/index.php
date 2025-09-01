@@ -1,8 +1,8 @@
-<?php 
-  if ($_SESSION["level"] != 'Admin') {
-    echo"<br><div class='alert alert-danger'>Tidak Memiliki Hak Akses</div>";
+<?php
+if ($_SESSION["level"] != 'Admin') {
+    echo "<br><div class='alert alert-danger'>Tidak Memiliki Hak Akses</div>";
     exit;
-  }
+}
 ?>
 
 <nav aria-label="breadcrumb">
@@ -16,18 +16,19 @@
 <div class="row">
     <div class="col-md-12">
         <?php
-            function showAlert($type, $message) {
-                $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
-                echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'><i class='bi bi-{$icon} me-2'></i><div>{$message}</div></div>";
-            }
-            if (isset($_GET['edit'])) {
-                if ($_GET['edit']=='berhasil') showAlert('success', '<strong>Berhasil!</strong> Pengaturan profil instansi telah diupdate.');
-                else showAlert('danger', '<strong>Gagal!</strong> Pengaturan profil instansi gagal diupdate.');
-            }
-            if (isset($_GET['absen'])) {
-                if ($_GET['absen']=='berhasil') showAlert('success', '<strong>Berhasil!</strong> Pengaturan absensi telah diupdate.');
-                else showAlert('danger', '<strong>Gagal!</strong> Pengaturan absensi gagal diupdate.');
-            }
+        function showAlert($type, $message)
+        {
+            $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
+            echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'><i class='bi bi-{$icon} me-2'></i><div>{$message}</div></div>";
+        }
+        if (isset($_GET['edit'])) {
+            if ($_GET['edit'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Pengaturan profil instansi telah diupdate.');
+            else showAlert('danger', '<strong>Gagal!</strong> Pengaturan profil instansi gagal diupdate.');
+        }
+        if (isset($_GET['absen'])) {
+            if ($_GET['absen'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Pengaturan absensi telah diupdate.');
+            else showAlert('danger', '<strong>Gagal!</strong> Pengaturan absensi gagal diupdate.');
+        }
         ?>
     </div>
 </div>
@@ -42,39 +43,39 @@
             </div>
             <div class="card-body">
                 <?php
-                    $hasil = mysqli_query($kon, "SELECT * FROM tbl_site LIMIT 1");
-                    $data = mysqli_fetch_array($hasil); 
+                $hasil = mysqli_query($kon, "SELECT * FROM tbl_site LIMIT 1");
+                $data = mysqli_fetch_array($hasil);
                 ?>
                 <form action="apps/pengaturan/edit.php" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" value="<?php echo $data['id_site']; ?>">
                     <input type="hidden" name="logo_sebelumnya" value="<?php echo $data['logo']; ?>">
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Nama Instansi</label>
-                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['nama_instansi']); ?>" name="nama_instansi" required>  
+                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['nama_instansi']); ?>" name="nama_instansi" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nama Pimpinan</label>
-                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['pimpinan']); ?>" name="pimpinan" required>  
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['pimpinan']); ?>" name="pimpinan" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nama Pembimbing</label>
-                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['pembimbing']); ?>" name="pembimbing" required>  
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['pembimbing']); ?>" name="pembimbing" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Alamat</label>
-                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['alamat']); ?>" name="alamat">  
+                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['alamat']); ?>" name="alamat">
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">No. Telepon</label>
-                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['no_telp']); ?>" name="no_telp">  
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['no_telp']); ?>" name="no_telp">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Website</label>
-                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['website']); ?>" name="website">  
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['website']); ?>" name="website">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -110,20 +111,44 @@
             </div>
             <div class="card-body">
                 <?php
-                    $query_absensi = mysqli_query($kon, "SELECT * FROM tbl_setting_absensi LIMIT 1");    
-                    $row_absensi = mysqli_fetch_array($query_absensi);
+                // Mengambil data dari tbl_setting_absensi
+                $query_absensi = mysqli_query($kon, "SELECT * FROM tbl_setting_absensi LIMIT 1");
+                $row_absensi = mysqli_fetch_array($query_absensi);
                 ?>
                 <form action="apps/pengaturan/absensi.php" method="post">
-                    <input type="hidden" value="<?php echo $row_absensi['id_waktu']; ?>" name="id_waktu">  
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Jam Mulai Absen</label>
-                        <input type="time" class="form-control" value="<?php echo $row_absensi['mulai_absen']; ?>" name="mulai_absen" required>  
+                    <!-- Pastikan ada input hidden untuk id_waktu -->
+                    <input type="hidden" value="<?php echo $row_absensi['id_waktu']; ?>" name="id_waktu">
+
+                    <h6 class="text-muted">Jendela Waktu Absen Masuk</h6>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mulai</label>
+                            <!-- [PERBAIKAN] Menggunakan nama kolom baru: masuk_mulai -->
+                            <input type="time" class="form-control" value="<?php echo $row_absensi['masuk_mulai']; ?>" name="masuk_mulai" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Selesai</label>
+                            <!-- [PERBAIKAN] Menggunakan nama kolom baru: masuk_akhir -->
+                            <input type="time" class="form-control" value="<?php echo $row_absensi['masuk_akhir']; ?>" name="masuk_akhir" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Jam Akhir Absen</label>
-                        <input type="time" class="form-control" value="<?php echo $row_absensi['akhir_absen']; ?>" name="akhir_absen" required>  
+
+                    <hr>
+
+                    <h6 class="text-muted">Jendela Waktu Absen Pulang</h6>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mulai</label>
+                            <!-- [PERBAIKAN] Menggunakan nama kolom baru: pulang_mulai -->
+                            <input type="time" class="form-control" value="<?php echo $row_absensi['pulang_mulai']; ?>" name="pulang_mulai" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Selesai</label>
+                            <!-- [PERBAIKAN] Menggunakan nama kolom baru: pulang_akhir -->
+                            <input type="time" class="form-control" value="<?php echo $row_absensi['pulang_akhir']; ?>" name="pulang_akhir" required>
+                        </div>
                     </div>
+
                     <hr>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary" name="ubah_absen"><i class="bi bi-save"></i> Simpan Perubahan</button>

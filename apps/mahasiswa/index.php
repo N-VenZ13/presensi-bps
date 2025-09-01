@@ -10,17 +10,17 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="index.php?page=beranda">Beranda</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Data Mahasiswa</li>
+        <li class="breadcrumb-item active" aria-current="page">Data Peserta</li>
     </ol>
 </nav>
 
 <!-- [BARU] Bungkus semua dalam satu card untuk konsistensi -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Data Mahasiswa</h5>
+        <h5 class="mb-0">Data Peserta</h5>
         <!-- [DIUBAH] Tombol Tambah dengan gaya dan ikon baru. ID tetap sama untuk AJAX -->
         <button type="button" class="btn btn-primary" id="tombol_tambah">
-            <i class="bi bi-plus-lg me-1"></i> Tambah Mahasiswa
+            <i class="bi bi-plus-lg me-1"></i> Tambah Peserta
         </button>
     </div>
     <div class="card-body">
@@ -72,7 +72,7 @@
                         <th>No</th>
                         <th>Nama</th>
                         <th>Asal Instansi</th>
-                        <th>NIM</th>
+                        <th>Nomor Induk</th>
                         <th>Mulai</th>
                         <th>Selesai</th>
                         <th class="text-center">Foto</th>

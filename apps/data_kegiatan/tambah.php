@@ -41,7 +41,7 @@
     <div class="row">
         <div class="col-sm-6">
             <div class="form-group">
-                <label>Nama Mahasiswa :</label>
+                <label>Nama Peserta :</label>
                 <select class="form-control" id="mahasiswa" name="mahasiswa"  required>
                 <?php
                     // Tampilkan data nama dan id_mahasiswa pada elemen select option

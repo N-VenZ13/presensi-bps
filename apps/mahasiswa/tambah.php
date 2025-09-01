@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (isset($_POST['tambah_mahasiswa'])) {
-    
+
     // Keluar jika tidak ada session admin
     if ($_SESSION['level'] != 'Admin') {
         die("Akses ditolak.");
@@ -29,14 +29,15 @@ if (isset($_POST['tambah_mahasiswa'])) {
     $kode_mahasiswa = "M" . sprintf("%03s", $id_baru);
 
     // [PERBAIKAN KEAMANAN] Insert ke tbl_user menggunakan prepared statement
-    $stmt_user = mysqli_prepare($kon, "INSERT INTO tbl_user (kode_pengguna) VALUES (?)");
-    mysqli_stmt_bind_param($stmt_user, "s", $kode_mahasiswa);
+    $level_mahasiswa = "Mahasiswa";
+    $stmt_user = mysqli_prepare($kon, "INSERT INTO tbl_user (kode_pengguna, level) VALUES (?, ?)");
+    mysqli_stmt_bind_param($stmt_user, "ss", $kode_mahasiswa, $level_mahasiswa);
     $simpan_pengguna = mysqli_stmt_execute($stmt_user);
 
     // Proses Upload Foto
     $foto_final = "foto_default.png"; // Default foto
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-        $ekstensi_diperbolehkan = array('png','jpg','jpeg','gif');
+        $ekstensi_diperbolehkan = array('png', 'jpg', 'jpeg', 'gif');
         $nama_foto = $_FILES['foto']['name'];
         $x = explode('.', $nama_foto);
         $ekstensi = strtolower(end($x));

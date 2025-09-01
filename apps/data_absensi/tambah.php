@@ -60,7 +60,7 @@
     <div class="row">
         <div class="col-sm-6">
             <div class="form-group">
-                <label>Nama Mahasiswa :</label>
+                <label>Nama Peserta :</label>
                 <select class="form-control" id="id_mahasiswa" name="id_mahasiswa"  required>
                     <?php 
                         include '../../config/database.php';

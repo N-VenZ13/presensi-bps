@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (isset($_POST['tambah_admin'])) {
-    
+
     if ($_SESSION['level'] != 'Admin') die("Akses ditolak.");
 
     include '../../config/database.php';
@@ -18,8 +18,9 @@ if (isset($_POST['tambah_admin'])) {
     $kode_admin = "A" . sprintf("%03s", $id_baru);
 
     // [PERBAIKAN KEAMANAN]
-    $stmt_user = mysqli_prepare($kon, "INSERT INTO tbl_user (kode_pengguna) VALUES (?)");
-    mysqli_stmt_bind_param($stmt_user, "s", $kode_admin);
+    $level_admin = "Admin";
+    $stmt_user = mysqli_prepare($kon, "INSERT INTO tbl_user (kode_pengguna, level) VALUES (?, ?)");
+    mysqli_stmt_bind_param($stmt_user, "ss", $kode_admin, $level_admin);
     $simpan_pengguna = mysqli_stmt_execute($stmt_user);
 
     // [PERBAIKAN KEAMANAN]

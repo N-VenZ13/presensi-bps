@@ -1,135 +1,74 @@
 <?php
 session_start();
-    if (isset($_POST['submit'])) {
-        
-        //Include file koneksi, untuk koneksikan ke database
-        include '../../config/database.php';
-        
-        //Fungsi untuk mencegah inputan karakter yang tidak sesuai
-        function input($data) {
-            $data = trim($data);
-            $data = stripslashes($data);
-            $data = htmlspecialchars($data);
-            return $data;
-        }
+include '../../config/database.php';
 
-        //Cek apakah ada kiriman form dari method post
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// =======================================================
+// BAGIAN PROSES UPDATE
+// =======================================================
+if (isset($_POST['submit'])) {
 
-            //Memulai transaksi
-            mysqli_query($kon,"START TRANSACTION");
+    if ($_SESSION['level'] != 'Admin') die("Akses ditolak.");
 
-            $kode_admin=input($_POST["kode_admin"]);
-            $username=input($_POST["username"]);
-            $password=md5(input($_POST["password"]));
-            $level="Admin";
+    $kode_pengguna = $_POST['kode_admin'];
+    $username = htmlspecialchars($_POST['username']);
+    $password_baru = $_POST['password_baru'];
 
-            $sql="UPDATE tbl_user SET 
-            username='$username',
-            password='$password',
-            level='$level'
-            where kode_pengguna='$kode_admin'";
+    // Cek apakah admin mencoba mengubah password dirinya sendiri
+    $bisa_ubah_password = ($_SESSION['kode_pengguna'] == $kode_pengguna);
 
-            //Menyimpan ke tabel pengguna
-            $setting_pengguna=mysqli_query($kon,$sql);
-
-            if ($setting_pengguna) {
-                mysqli_query($kon,"COMMIT");
-                header("Location:../../index.php?page=admin&pengguna=berhasil");
-            }
-            else {
-                mysqli_query($kon,"ROLLBACK");
-                header("Location:../../index.php?page=admin&pengguna=gagal");
-            }
-        }  
+    if (!empty($password_baru) && $bisa_ubah_password) {
+        // [PERBAIKAN] Gunakan password_hash() bukan md5()
+        $hash_password_baru = password_hash($password_baru, PASSWORD_DEFAULT);
+        $sql = "UPDATE tbl_user SET username=?, password=? WHERE kode_pengguna=?";
+        $stmt = mysqli_prepare($kon, $sql);
+        mysqli_stmt_bind_param($stmt, "sss", $username, $hash_password_baru, $kode_pengguna);
+    } else {
+        // Jika password dikosongkan atau mencoba mengubah password orang lain, hanya update username
+        $sql = "UPDATE tbl_user SET username=? WHERE kode_pengguna=?";
+        $stmt = mysqli_prepare($kon, $sql);
+        mysqli_stmt_bind_param($stmt, "ss", $username, $kode_pengguna);
     }
+
+    if (mysqli_stmt_execute($stmt)) {
+        header("Location:../../index.php?page=admin&pengguna=berhasil");
+    } else {
+        header("Location:../../index.php?page=admin&pengguna=gagal");
+    }
+    exit();
+}
+
+// =======================================================
+// BAGIAN TAMPILAN FORM
+// =======================================================
+$kode_pengguna = $_POST['kode_admin'];
+// [PERBAIKAN KEAMANAN] Gunakan prepared statement
+$stmt_select = mysqli_prepare($kon, "SELECT username FROM tbl_user WHERE kode_pengguna = ?");
+mysqli_stmt_bind_param($stmt_select, "s", $kode_pengguna);
+mysqli_stmt_execute($stmt_select);
+$hasil = mysqli_stmt_get_result($stmt_select);
+$data = mysqli_fetch_array($hasil);
 ?>
 
 <form action="apps/admin/pengguna.php" method="post">
-<?php
-    include '../../config/database.php';
-    $kode_pengguna=$_POST['kode_admin'];
-    $query = mysqli_query($kon, "SELECT * FROM tbl_user where kode_pengguna='$kode_pengguna'");
-    $data = mysqli_fetch_array($query);
-    $username=$data['username'];
-    $password=$data['password'];
-?>
+    <input type="hidden" name="kode_admin" value="<?php echo htmlspecialchars($kode_pengguna); ?>">
+    
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($data['username']); ?>" required>
+    </div>
 
-    <div class="row">
-        <div class="col-sm-7">
-            <div class="form-group">
-                <input name="kode_admin" type="hidden" id="kode_admin" class="form-control" value="<?php echo $_POST['kode_admin'];?>"/>
-            </div>
+    <?php if ($_SESSION['kode_pengguna'] == $kode_pengguna): // Hanya tampilkan field password jika admin mengedit dirinya sendiri ?>
+        <div class="mb-3">
+            <label class="form-label">Password Baru</label>
+            <input type="password" name="password_baru" class="form-control" placeholder="Isi untuk mengubah password Anda">
+            <div class="form-text">Kosongkan jika tidak ingin mengubah password.</div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Username :</label>
-                <input name="username" type="text" id="username" class="form-control" value="<?php echo $username; ?>" 
-                <?php
-                //Mencegah admin lain mengubah username jika password sudah dibuat
-                if($username == $_SESSION["username"]) {
-                    echo "";
-                    } else if (empty($username)) {
-                    echo "";
-                    } else
-                    echo "disabled";
-                ?>
-                placeholder="Buat Username" required>
-                <div id="info_username"> </div>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="form-group">
-                <label>Password :</label>
-                <input name="password" type="password" class="form-control" value="" 
-                <?php
-                //Mencegah admin lain mengubah username jika password sudah dibuat
-                if($username == $_SESSION["username"]) {
-                    echo "";
-                    } else if (empty($username)) {
-                    echo "";
-                    } else
-                    echo "disabled";
-                ?>
-                placeholder="Buat Password" required>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <button type="submit" name="submit" id="submit" class="btn-setting btn btn-success"><i class="fa fa-edit"></i> Simpan</button>
-        </div>
+    <?php else: ?>
+        <div class="alert alert-info">Anda tidak dapat mengubah password administrator lain.</div>
+    <?php endif; ?>
+
+    <hr>
+    <div class="d-flex justify-content-end">
+        <button type="submit" name="submit" class="btn btn-primary">Simpan</button>
     </div>
 </form>
-
-<script>
-    //Event pada field username, untuk mengecek ketersediaan username
-    $("#username").bind('keyup', function () {
-
-        var username = $('#username').val();
-
-        $.ajax({
-            url: 'apps/pengguna/cek_username.php',
-            method: 'POST',
-            data:{username:username},
-            success:function(data){
-                $('#info_username').show();
-                $('#info_username').html(data);
-            }
-        }); 
-    });
-</script>
-
-<script>
-    // fungsi mengubah password
-   $('.btn-setting').on('click',function(){
-        konfirmasi=confirm("Konfirmasi Menyimpan Username dan Password?")
-        if (konfirmasi){
-            return true;
-        }else {
-            return false;
-        }
-    });
-</script>

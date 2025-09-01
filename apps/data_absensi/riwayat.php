@@ -1,185 +1,126 @@
-<div class="row">
+<?php
+if ($_SESSION["level"] != 'Mahasiswa') {
+    echo "<div class='alert alert-danger'>Tidak memiliki Hak Akses</div>";
+    exit;
+}
+include 'config/function.php';
+$id_mahasiswa = $_SESSION['id_mahasiswa'];
+?>
+
+<nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li><a href="index.php?page=beranda">
-                <em class="fa fa-home"></em>
-            </a></li>
-        <li class="active">Riwayat Absensi</li>
+        <li class="breadcrumb-item active" aria-current="page">Riwayat Absensi</li>
     </ol>
-</div><!--/.row-->
+</nav>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-            Riwayat Absensi
-            <span class="pull-right clickable panel-toggle panel-button-tab-left"><em class="fa fa-toggle-up"></em></span></div>
-            <div class="panel-body">
-            <div class="row">
-                <form action="#" method="GET">
-                    <input type="hidden" name="page" value="riwayat"/>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <label>Tanggal Awal :</label>
-                            <input type="date" name="tanggal_awal" id="tanggal_awal" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <label>Tanggal Akhir :</label>
-                            <input type="date" name="tanggal_akhir" id="tanggal_akhir" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            </br>
-                            <button type="submit" class="btn btn-info"><i class="fa fa-search"></i> Cari</button>
-                        </div>
-                    </div>
-                </form>
-                </div>
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Riwayat Kehadiran Anda</h5>
     </div>
-</div><!--/.row-->
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-body">
-                
-                <div class="form-group">
-                    <button id_mahasiswa='<?php echo $_SESSION['id_mahasiswa']; ?>' type="button" class="cetak btn btn-primary" id="cetak"><i class="fa fa-print"></i> Cetak</button>
+    <div class="card-body">
+        <div class="p-3 mb-4 rounded" style="background-color: #f8f9fa;">
+            <form action="index.php" method="GET">
+                <input type="hidden" name="page" value="riwayat" />
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Dari Tanggal</label>
+                        <input type="date" name="tanggal_awal" class="form-control" value="<?php echo isset($_GET['tanggal_awal']) ? $_GET['tanggal_awal'] : ''; ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sampai Tanggal</label>
+                        <input type="date" name="tanggal_akhir" class="form-control" value="<?php echo isset($_GET['tanggal_akhir']) ? $_GET['tanggal_akhir'] : ''; ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-info w-100"><i class="bi bi-search"></i> Tampilkan</button>
+                    </div>
                 </div>
-                <table class="table table-bordered table-center" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th class="text-center">No</th>
-                                <th class="text-center">Hari</th>
-                                <th class="text-center">Tanggal</th>
-                                <th class="text-center">Waktu</th>
-                                <th class="text-center">Kehadiran</th>
-                                <th class="text-center">Keterangan</th>
-                            </tr>
-                        </thead>
-        
-                        <tbody>
-                        <?php
-                            // include database
-                            include 'config/database.php';
-                            include 'config/function.php';
-                            $id_mahasiswa=$_SESSION["id_mahasiswa"];
-                            if (isset($_GET['tanggal_awal']) AND $_GET['tanggal_akhir']) {
-                                $tanggal_awal=$_GET["tanggal_awal"];
-                                $tanggal_akhir=$_GET["tanggal_akhir"];
-                                $sql= "SELECT tbl_absensi.id_absensi, tbl_absensi.id_mahasiswa, tbl_alasan.id_alasan, 
-                                DAYNAME(tbl_absensi.tanggal) AS hari,
-                                tbl_absensi.waktu,
-                                tbl_absensi.tanggal,
-                                IFNULL(tbl_alasan.alasan, ' - ') AS alasan,
-                                  (CASE
-                                    WHEN tbl_absensi.status = 1 THEN 'Hadir'
-                                    WHEN tbl_absensi.status = 2 THEN 'Izin'
-                                    WHEN tbl_absensi.status = 3 THEN 'Tidak Hadir'
-                                    ELSE 'Belum Absensi'
-                                END) AS status
-                                FROM tbl_absensi
-                                LEFT JOIN tbl_alasan ON tbl_absensi.tanggal = tbl_alasan.tanggal AND tbl_absensi.id_mahasiswa = tbl_alasan.id_mahasiswa
-                                WHERE tbl_absensi.id_mahasiswa = '$id_mahasiswa' AND
-                                tbl_absensi.tanggal >= '$tanggal_awal' AND
-                                tbl_absensi.tanggal <= '$tanggal_akhir'
-                                ORDER BY tbl_absensi.tanggal DESC;";
-                            } else {
-                                $sql="SELECT tbl_absensi.id_absensi, tbl_absensi.id_mahasiswa, tbl_alasan.id_alasan, 
-                                DAYNAME(tbl_absensi.tanggal) AS hari,
-                                tbl_absensi.waktu,
-                                tbl_absensi.tanggal,
-                                IFNULL(tbl_alasan.alasan, ' - ') AS alasan,
-                                  (CASE
-                                    WHEN tbl_absensi.status = 1 THEN 'Hadir'
-                                    WHEN tbl_absensi.status = 2 THEN 'Izin'
-                                    WHEN tbl_absensi.status = 3 THEN 'Tidak Hadir'
-                                    ELSE 'Belum Absensi'
-                                END) AS status
-                                FROM tbl_absensi
-                                LEFT JOIN tbl_alasan ON tbl_absensi.tanggal = tbl_alasan.tanggal AND tbl_absensi.id_mahasiswa = tbl_alasan.id_mahasiswa
-                                WHERE tbl_absensi.id_mahasiswa = '$id_mahasiswa'
-                                ORDER BY tbl_absensi.tanggal DESC;";
-                            }                           
-                            $hasil=mysqli_query($kon,$sql);
-                            $no=0;
-                            //Menampilkan data dengan perulangan while
-                            while ($data = mysqli_fetch_array($hasil)):
-                            $no++;
-                        ?>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>Hari, Tanggal</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
+                        <th>Status</th>
+                        <th>Keterangan/Alasan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    // [PERBAIKAN KEAMANAN] Query dengan prepared statement
+                    $sql = "SELECT a.*, al.alasan
+                                FROM tbl_absensi a
+                                LEFT JOIN tbl_alasan al ON a.id_mahasiswa = al.id_mahasiswa AND a.tanggal = al.tanggal
+                                WHERE a.id_mahasiswa = ?";
+
+                    $params = [$id_mahasiswa];
+                    $types = "i";
+
+                    if (!empty($_GET['tanggal_awal'])) {
+                        $sql .= " AND a.tanggal >= ?";
+                        $params[] = $_GET['tanggal_awal'];
+                        $types .= "s";
+                    }
+                    if (!empty($_GET['tanggal_akhir'])) {
+                        $sql .= " AND a.tanggal <= ?";
+                        $params[] = $_GET['tanggal_akhir'];
+                        $types .= "s";
+                    }
+                    $sql .= " ORDER BY a.tanggal DESC";
+
+                    $stmt = mysqli_prepare($kon, $sql);
+                    mysqli_stmt_bind_param($stmt, $types, ...$params);
+                    mysqli_stmt_execute($stmt);
+                    $hasil = mysqli_stmt_get_result($stmt);
+
+                    $no = 0;
+                    while ($data = mysqli_fetch_array($hasil)):
+                        $no++;
+
+                        $status_text = '';
+                        switch ($data['status']) {
+                            case 1:
+                                $status_text = 'Hadir';
+                                break;
+                            case 2:
+                                $status_text = 'Izin';
+                                break;
+                            case 3:
+                                $status_text = 'Tidak Hadir';
+                                break;
+                        }
+                    ?>
                         <tr>
-                            <td class="text-center"><?php echo $no; ?></td>
-                            <td class="text-center">
+                            <td><?php echo $no; ?></td>
+                            <td>
                                 <?php
-                                    $hari = $data['hari'];
-                                    echo MendapatkanHari($hari);
+                                // echo MendapatkanHari(strtolower($data["hari"])) . ", " . date('d/m/Y', strtotime($data['tanggal']));
+                                $nama_hari_inggris = date('l', strtotime($data['tanggal']));
+                                echo MendapatkanHari($nama_hari_inggris) . ", " . date('d/m/Y', strtotime($data['tanggal']));
                                 ?>
                             </td>
-                            <td class="text-center">
-                                <?php 
-                                $tgl = date("d", strtotime($data['tanggal']));
-                                $bulan = date("m", strtotime($data['tanggal']));
-                                $tahun = date("Y", strtotime($data['tanggal']));
-                                echo $tgl.' '.MendapatkanBulan($bulan).' '.$tahun
+                            <td><?php echo $data['waktu'] ? date('H:i:s', strtotime($data['waktu'])) : '-'; ?></td>
+                            <td><?php echo $data['waktu_pulang'] ? date('H:i:s', strtotime($data['waktu_pulang'])) : '-'; ?></td>
+                            <!-- <td><?php echo $status_text; ?></td> -->
+                            <td>
+                                <?php
+                                // Gabungkan keterangan (misal: "Terlambat") dengan alasan izin jika ada
+                                $keterangan_final = $data['keterangan'];
+                                if ($data['status'] == 2 && !empty($data['alasan'])) {
+                                    $keterangan_final = $data['alasan'];
+                                }
+                                echo htmlspecialchars($keterangan_final);
                                 ?>
                             </td>
-                            <td class="text-center"><?php echo $data['waktu']; ?></td> 
-                            <td class="text-center"><?php echo $data['status']; ?></td>
-                            <td class="text-center"><?php echo $data['alasan']; ?></td>                         
+                            <td><?php echo htmlspecialchars($data['alasan']); ?></td>
                         </tr>
-                        <!-- bagian akhir (penutup) while -->
-                        <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                <div class="form-group">
-                </div>
-            </div>
-        </div>
-    </div>
-</div><!--/.row-->
-
-<!-- Modal -->
-<div class="modal fade" id="modal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-        <div class="modal-header">
-            <h4 class="modal-title" id="judul"></h4>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-        </div>
-
-        <div class="modal-body">
-            <div id="tampil_data">
-                 <!-- Data akan di load menggunakan AJAX -->                   
-            </div>  
-        </div>
-  
-        <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
-        </div>
-
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<script>
-    // Setting absensi
-    $('.cetak').on('click',function(){
-        var id_mahasiswa = $(this).attr("id_mahasiswa");
-        $.ajax({
-            url: 'apps/data_absensi/cetak.php',
-            method: 'POST',
-            data: {id_mahasiswa: id_mahasiswa},
-            success:function(data){
-                $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Cetak Absensi';
-            }
-        });
-        // Membuka modal
-        $('#modal').modal('show');
-    });
-</script>

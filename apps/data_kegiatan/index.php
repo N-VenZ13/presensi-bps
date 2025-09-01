@@ -18,7 +18,7 @@
 <!-- [BARU] Bungkus semua dalam satu card untuk konsistensi -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Data Kegiatan Harian Mahasiswa</h5>
+        <h5 class="mb-0">Data Kegiatan Harian Peserta Magang</h5>
         <button type="button" class="btn btn-primary" id="tambah_kegiatan">
             <i class="bi bi-plus-lg me-1"></i> Tambah Kegiatan
         </button>
@@ -45,7 +45,7 @@
                 <input type="hidden" name="page" value="data_kegiatan"/>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label for="nama" class="form-label">Nama Mahasiswa</label>
+                        <label for="nama" class="form-label">Nama Peserta</label>
                         <input type="text" name="nama" id="nama" class="form-control" placeholder="Cari nama..." value="<?php echo isset($_GET['nama']) ? htmlspecialchars($_GET['nama']) : ''; ?>">
                     </div>
                     <div class="col-md-3">
@@ -71,7 +71,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>No</th>
-                        <th>Mahasiswa</th>
+                        <th>Nama</th>
                         <th>Hari, Tanggal</th>
                         <th>Jam</th>
                         <th>Kegiatan</th>
@@ -127,7 +127,7 @@
                         <td><?php echo htmlspecialchars($data['nama']); ?></td>
                         <td>
                             <?php 
-                                echo MendapatkanHari(strtolower($data["hari"])) . ", " . 
+                                echo MendapatkanHari(($data["hari"])) . ", " . 
                                      date('d', strtotime($data['tanggal'])) . ' ' . 
                                      MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' . 
                                      date('Y', strtotime($data['tanggal']));

@@ -1,9 +1,9 @@
-<?php 
-    if ($_SESSION["level"] != 'Admin') {
-        echo "<div class='alert alert-danger'>Tidak memiliki Hak Akses</div>";
-        exit;
-    }
-    include 'config/function.php';
+<?php
+if ($_SESSION["level"] != 'Admin') {
+    echo "<div class='alert alert-danger'>Tidak memiliki Hak Akses</div>";
+    exit;
+}
+include 'config/function.php';
 ?>
 
 <nav aria-label="breadcrumb">
@@ -21,27 +21,28 @@
         </button>
     </div>
     <div class="card-body">
-        
+
         <?php
-            function showAlert($type, $message) {
-                $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
-                echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'>";
-                echo "<i class='bi bi-{$icon} me-2'></i>";
-                echo "<div>{$message}</div>";
-                echo "</div>";
-            }
-            if (isset($_GET['mulai'])) {
-                if ($_GET['mulai'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Data absensi berhasil ditambahkan.');
-                else if ($_GET['mulai'] == 'gagal') showAlert('warning', '<strong>Gagal!</strong> Data absensi untuk mahasiswa tersebut pada tanggal itu sudah ada.');
-            }
+        function showAlert($type, $message)
+        {
+            $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
+            echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'>";
+            echo "<i class='bi bi-{$icon} me-2'></i>";
+            echo "<div>{$message}</div>";
+            echo "</div>";
+        }
+        if (isset($_GET['mulai'])) {
+            if ($_GET['mulai'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Data absensi berhasil ditambahkan.');
+            else if ($_GET['mulai'] == 'gagal') showAlert('warning', '<strong>Gagal!</strong> Data absensi untuk mahasiswa tersebut pada tanggal itu sudah ada.');
+        }
         ?>
 
         <div class="p-3 mb-4 rounded" style="background-color: #f8f9fa;">
             <form action="index.php" method="GET">
-                <input type="hidden" name="page" value="data_absensi"/>
+                <input type="hidden" name="page" value="data_absensi" />
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label for="nama" class="form-label">Nama Mahasiswa</label>
+                        <label for="nama" class="form-label">Nama Peserta</label>
                         <input type="text" name="nama" id="nama" class="form-control" placeholder="Cari nama..." value="<?php echo isset($_GET['nama']) ? htmlspecialchars($_GET['nama']) : ''; ?>">
                     </div>
                     <div class="col-md-3">
@@ -68,14 +69,16 @@
                         <th>No</th>
                         <th>Nama</th>
                         <th>Status</th>
-                        <th>Waktu</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
                         <th>Hari, Tanggal</th>
+                        <th>Keterangan</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                        $base_sql = "SELECT a.*, m.nama, m.nama_instansi_asal, DAYNAME(a.tanggal) as hari, 
+                    $base_sql = "SELECT a.*, m.nama, m.nama_instansi_asal, DAYNAME(a.tanggal) as hari, 
                                      CASE a.status 
                                          WHEN 1 THEN 'Hadir' 
                                          WHEN 2 THEN 'Izin' 
@@ -84,69 +87,88 @@
                                      END as status_text 
                                      FROM tbl_absensi a 
                                      JOIN tbl_mahasiswa m ON a.id_mahasiswa = m.id_mahasiswa";
-                        
-                        $conditions = [];
-                        $params = [];
-                        $types = "";
 
-                        if (!empty($_GET['nama'])) {
-                            $conditions[] = "m.nama LIKE ?";
-                            $params[] = "%" . $_GET['nama'] . "%";
-                            $types .= "s";
-                        }
-                        if (!empty($_GET['tanggal_awal'])) {
-                            $conditions[] = "a.tanggal >= ?";
-                            $params[] = $_GET['tanggal_awal'];
-                            $types .= "s";
-                        }
-                        if (!empty($_GET['tanggal_akhir'])) {
-                            $conditions[] = "a.tanggal <= ?";
-                            $params[] = $_GET['tanggal_akhir'];
-                            $types .= "s";
-                        }
+                    $conditions = [];
+                    $params = [];
+                    $types = "";
 
-                        if (!empty($conditions)) {
-                            $base_sql .= " WHERE " . implode(" AND ", $conditions);
-                        }
-                        
-                        $base_sql .= " ORDER BY a.tanggal DESC, a.waktu DESC";
+                    if (!empty($_GET['nama'])) {
+                        $conditions[] = "m.nama LIKE ?";
+                        $params[] = "%" . $_GET['nama'] . "%";
+                        $types .= "s";
+                    }
+                    if (!empty($_GET['tanggal_awal'])) {
+                        $conditions[] = "a.tanggal >= ?";
+                        $params[] = $_GET['tanggal_awal'];
+                        $types .= "s";
+                    }
+                    if (!empty($_GET['tanggal_akhir'])) {
+                        $conditions[] = "a.tanggal <= ?";
+                        $params[] = $_GET['tanggal_akhir'];
+                        $types .= "s";
+                    }
 
-                        $stmt = mysqli_prepare($kon, $base_sql);
-                        if (!empty($params)) {
-                            mysqli_stmt_bind_param($stmt, $types, ...$params);
-                        }
-                        mysqli_stmt_execute($stmt);
-                        $hasil = mysqli_stmt_get_result($stmt);
-                        
-                        $no = 0;
-                        while ($data = mysqli_fetch_array($hasil)):
+                    if (!empty($conditions)) {
+                        $base_sql .= " WHERE " . implode(" AND ", $conditions);
+                    }
+
+                    $base_sql .= " ORDER BY a.tanggal DESC, a.waktu DESC";
+
+                    $stmt = mysqli_prepare($kon, $base_sql);
+                    if (!empty($params)) {
+                        mysqli_stmt_bind_param($stmt, $types, ...$params);
+                    }
+                    mysqli_stmt_execute($stmt);
+                    $hasil = mysqli_stmt_get_result($stmt);
+
+                    $no = 0;
+                    while ($data = mysqli_fetch_array($hasil)):
                         $no++;
                     ?>
-                    <tr>
-                        <td><?php echo $no; ?></td>
-                        <td>
-                            <strong><?php echo htmlspecialchars($data['nama']); ?></strong><br>
-                            <small class="text-muted"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></small>
-                        </td>
-                        <td><?php echo htmlspecialchars($data['status_text']); ?></td>
-                        <td><?php echo htmlspecialchars($data['waktu']); ?></td>
-                        <td>
-                            <?php 
-                                echo MendapatkanHari(strtolower($data["hari"])) . ", " . 
-                                     date('d', strtotime($data['tanggal'])) . ' ' . 
-                                     MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' . 
-                                     date('Y', strtotime($data['tanggal']));
-                            ?>
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-success btn-sm absensi" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_absensi="<?php echo $data['id_absensi']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Absensi">
-                                <i class="bi bi-clock-history"></i>
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm cetak" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Absensi">
-                                <i class="bi bi-printer-fill"></i>
-                            </button>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td><?php echo $no; ?></td>
+                            <td>
+                                <strong><?php echo htmlspecialchars($data['nama']); ?></strong><br>
+                                <small class="text-muted"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></small>
+                            </td>
+                            <td><?php echo htmlspecialchars($data['status_text']); ?></td>
+                            <!-- <td><?php echo htmlspecialchars($data['waktu']); ?></td> -->
+                            <td><?php echo $data['waktu'] ? date('H:i:s', strtotime($data['waktu'])) : '-'; ?></td>
+                            <td><?php echo $data['waktu_pulang'] ? date('H:i:s', strtotime($data['waktu_pulang'])) : '-'; ?></td>
+                            <td>
+                                <?php
+                                echo MendapatkanHari(($data["hari"])) . ", " .
+                                    date('d', strtotime($data['tanggal'])) . ' ' .
+                                    MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' .
+                                    date('Y', strtotime($data['tanggal']));
+                                ?>
+                            </td>
+                            <td>
+                                <?php
+                                $keterangan_final_admin = $data['keterangan'];
+                                if ($data['status'] == 2) {
+                                    // Jika Izin, kita perlu query tambahan kecil untuk mengambil alasannya
+                                    $stmt_alasan = mysqli_prepare($kon, "SELECT alasan FROM tbl_alasan WHERE id_mahasiswa = ? AND tanggal = ?");
+                                    mysqli_stmt_bind_param($stmt_alasan, "is", $data['id_mahasiswa'], $data['tanggal']);
+                                    mysqli_stmt_execute($stmt_alasan);
+                                    $result_alasan = mysqli_stmt_get_result($stmt_alasan);
+                                    if ($data_alasan = mysqli_fetch_assoc($result_alasan)) {
+                                        $keterangan_final_admin = $data_alasan['alasan'];
+                                    }
+                                }
+                                echo htmlspecialchars($keterangan_final_admin);
+                                ?>
+                            </td>
+                            
+                            <td class="text-center">
+                                <button type="button" class="btn btn-success btn-sm absensi" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_absensi="<?php echo $data['id_absensi']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Absensi">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm cetak" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Absensi">
+                                    <i class="bi bi-printer-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
@@ -162,7 +184,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="tampil_data"></div>  
+                <div id="tampil_data"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -177,49 +199,54 @@
 <script>
     // Inisialisasi Tooltip Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
     // Script AJAX untuk halaman Data Absensi
-    $('#tambah_absensi').on('click',function(){
+    $('#tambah_absensi').on('click', function() {
         $.ajax({
             url: 'apps/data_absensi/tambah.php',
             method: 'post',
-            success:function(data){
-                $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Tambah Absensi Manual';
+            success: function(data) {
+                $('#tampil_data').html(data);
+                document.getElementById("judul").innerHTML = 'Tambah Absensi Manual';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
         myModal.show();
     });
 
-    $('.absensi').on('click',function(){
+    $('.absensi').on('click', function() {
         var id_mahasiswa = $(this).attr("id_mahasiswa");
         var id_absensi = $(this).attr("id_absensi");
         $.ajax({
             url: 'apps/data_absensi/absensi.php',
             method: 'POST',
-            data: {id_mahasiswa: id_mahasiswa, id_absensi: id_absensi},
-            success:function(data){
-                $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Ubah Data Absensi';
+            data: {
+                id_mahasiswa: id_mahasiswa,
+                id_absensi: id_absensi
+            },
+            success: function(data) {
+                $('#tampil_data').html(data);
+                document.getElementById("judul").innerHTML = 'Ubah Data Absensi';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
         myModal.show();
     });
 
-    $('.cetak').on('click',function(){
+    $('.cetak').on('click', function() {
         var id_mahasiswa = $(this).attr("id_mahasiswa");
         $.ajax({
             url: 'apps/data_absensi/cetak.php',
             method: 'POST',
-            data: {id_mahasiswa: id_mahasiswa},
-            success:function(data){
-                $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Cetak Laporan Absensi';
+            data: {
+                id_mahasiswa: id_mahasiswa
+            },
+            success: function(data) {
+                $('#tampil_data').html(data);
+                document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
