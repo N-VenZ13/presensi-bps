@@ -20,30 +20,27 @@ include 'config/function.php';
             <button type="button" class="btn btn-secondary" id="tombol_cetak_laporan">
                 <i class="bi bi-printer-fill me-1"></i> Cetak Laporan
             </button>
-            <!-- me-2 artinya margin-end sebesar 2 unit -->
-            <button type="button" class="btn btn-primary ms-2" id="tambah_absensi">
+            <button type="button" class="btn btn-primary" id="tambah_absensi">
                 <i class="bi bi-plus-lg me-1"></i> Tambah Absensi Manual
             </button>
         </div>
     </div>
-
     <div class="card-body">
 
+        <!-- Notifikasi -->
         <?php
-        function showAlert($type, $message)
-        {
-            $icon = ($type == 'success') ? 'check-circle-fill' : 'exclamation-triangle-fill';
-            echo "<div class='alert alert-{$type} d-flex align-items-center' role='alert'>";
-            echo "<i class='bi bi-{$icon} me-2'></i>";
-            echo "<div>{$message}</div>";
-            echo "</div>";
-        }
         if (isset($_GET['mulai'])) {
-            if ($_GET['mulai'] == 'berhasil') showAlert('success', '<strong>Berhasil!</strong> Data absensi berhasil ditambahkan.');
-            else if ($_GET['mulai'] == 'gagal') showAlert('warning', '<strong>Gagal!</strong> Data absensi untuk mahasiswa tersebut pada tanggal itu sudah ada.');
+            if ($_GET['mulai'] == 'berhasil') echo "<div class='alert alert-success'><strong>Berhasil!</strong> Data absensi berhasil ditambahkan.</div>";
+            else if ($_GET['mulai'] == 'gagal') echo "<div class='alert alert-warning'><strong>Gagal!</strong> Data absensi sudah ada.</div>";
+        }
+        // [BARU] Notifikasi untuk persetujuan izin
+        if (isset($_GET['approve'])) {
+            if ($_GET['approve'] == 'berhasil') echo "<div class='alert alert-success'><strong>Berhasil!</strong> Status izin telah diperbarui.</div>";
+            else echo "<div class='alert alert-danger'><strong>Gagal!</strong> Status izin gagal diperbarui.</div>";
         }
         ?>
 
+        <!-- Form Filter -->
         <div class="p-3 mb-4 rounded" style="background-color: #f8f9fa;">
             <form action="index.php" method="GET">
                 <input type="hidden" name="page" value="data_absensi" />
@@ -85,15 +82,26 @@ include 'config/function.php';
                 </thead>
                 <tbody>
                     <?php
-                    $base_sql = "SELECT a.*, m.nama, m.nama_instansi_asal, DAYNAME(a.tanggal) as hari, 
-                                     CASE a.status 
-                                         WHEN 1 THEN 'Hadir' 
-                                         WHEN 2 THEN 'Izin' 
-                                         WHEN 3 THEN 'Tidak Hadir' 
-                                         ELSE 'Tidak Diketahui' 
-                                     END as status_text 
-                                     FROM tbl_absensi a 
-                                     JOIN tbl_mahasiswa m ON a.id_mahasiswa = m.id_mahasiswa";
+                    // [PERBAIKAN] Query diperbarui untuk JOIN ke tbl_alasan
+                    $base_sql = "SELECT 
+                                    a.*, 
+                                    m.nama, 
+                                    m.nama_instansi_asal, 
+                                    al.alasan, 
+                                    al.file_bukti,
+                
+                                    CASE a.status 
+                                        WHEN 1 THEN 'Hadir' 
+                                        WHEN 2 THEN 'Izin Disetujui' 
+                                        WHEN 3 THEN 'Tidak Hadir'
+                                        WHEN 4 THEN 'Izin Ditolak'
+                                        WHEN 5 THEN 'Menunggu Persetujuan'
+                                        ELSE 'N/A' 
+                                    END as status_text 
+                                FROM tbl_absensi a 
+                                JOIN tbl_mahasiswa m ON a.id_mahasiswa = m.id_mahasiswa
+                                LEFT JOIN tbl_alasan al ON a.id_mahasiswa = al.id_mahasiswa AND a.tanggal = al.tanggal";
+
 
                     $conditions = [];
                     $params = [];
@@ -126,54 +134,110 @@ include 'config/function.php';
                         mysqli_stmt_bind_param($stmt, $types, ...$params);
                     }
                     mysqli_stmt_execute($stmt);
-                    $hasil = mysqli_stmt_get_result($stmt);
 
+                    $hasil = mysqli_stmt_get_result($stmt);
                     $no = 0;
                     while ($data = mysqli_fetch_array($hasil)):
                         $no++;
+
+                        // =======================================================
+                        // TAMBAHKAN BLOK DEBUG DI SINI
+                        // =======================================================
+                        // if ($no == 1) { // Hanya dump data baris pertama
+                        //     echo "<pre style='background: #111; color: #eee; padding: 10px; border: 1px solid #ccc;'>";
+                        //     echo "<strong>--- DEBUG: ISI ARRAY \$data DARI DATABASE ---</strong><br>";
+                        //     var_dump($data);
+                        //     echo "</pre>";
+                        // }
+                        // =======================================================
+                        // AKHIR BLOK DEBUG
+                        // =======================================================
+
+                        // [PERBAIKAN] Logika baru untuk badge status
+                        $baris_class = '';
+                        $badge_color = 'secondary'; // Warna default
+                        switch ($data['status']) {
+                            case 1:
+                                $badge_color = 'success';
+                                break;
+                            case 2:
+                                $badge_color = 'info';
+                                break;
+                            case 3:
+                                $badge_color = 'dark';
+                                break;
+                            case 4:
+                                $badge_color = 'danger';
+                                break;
+                            case 5:
+                                $badge_color = 'warning text-dark';
+                                $baris_class = 'table-warning';
+                                break;
+                        }
+                        $status_badge = "<span class='badge bg-{$badge_color}'>{$data['status_text']}</span>";
                     ?>
-                        <tr>
+                        <tr class="<?php echo $baris_class; ?>">
                             <td><?php echo $no; ?></td>
                             <td>
                                 <strong><?php echo htmlspecialchars($data['nama']); ?></strong><br>
                                 <small class="text-muted"><?php echo htmlspecialchars($data['nama_instansi_asal']); ?></small>
                             </td>
-                            <td><?php echo htmlspecialchars($data['status_text']); ?></td>
-                            <!-- <td><?php echo htmlspecialchars($data['waktu']); ?></td> -->
+                            <td><?php echo $status_badge; ?></td>
                             <td><?php echo $data['waktu'] ? date('H:i:s', strtotime($data['waktu'])) : '-'; ?></td>
                             <td><?php echo $data['waktu_pulang'] ? date('H:i:s', strtotime($data['waktu_pulang'])) : '-'; ?></td>
                             <td>
                                 <?php
-                                echo MendapatkanHari(($data["hari"])) . ", " .
-                                    date('d', strtotime($data['tanggal'])) . ' ' .
-                                    MendapatkanBulan(date('m', strtotime($data['tanggal']))) . ' ' .
-                                    date('Y', strtotime($data['tanggal']));
+                                $nama_hari_inggris = date('l', strtotime($data['tanggal']));
+                                echo MendapatkanHari($nama_hari_inggris) . ", " . date('d/m/Y', strtotime($data['tanggal']));
                                 ?>
                             </td>
                             <td>
                                 <?php
                                 $keterangan_final_admin = $data['keterangan'];
-                                if ($data['status'] == 2) {
-                                    // Jika Izin, kita perlu query tambahan kecil untuk mengambil alasannya
-                                    $stmt_alasan = mysqli_prepare($kon, "SELECT alasan FROM tbl_alasan WHERE id_mahasiswa = ? AND tanggal = ?");
-                                    mysqli_stmt_bind_param($stmt_alasan, "is", $data['id_mahasiswa'], $data['tanggal']);
-                                    mysqli_stmt_execute($stmt_alasan);
-                                    $result_alasan = mysqli_stmt_get_result($stmt_alasan);
-                                    if ($data_alasan = mysqli_fetch_assoc($result_alasan)) {
-                                        $keterangan_final_admin = $data_alasan['alasan'];
-                                    }
+                                if (in_array($data['status'], [2, 4, 5]) && !empty($data['alasan'])) {
+                                    $keterangan_final_admin = $data['alasan'];
                                 }
                                 echo htmlspecialchars($keterangan_final_admin);
                                 ?>
                             </td>
-
                             <td class="text-center">
-                                <button type="button" class="btn btn-success btn-sm absensi" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_absensi="<?php echo $data['id_absensi']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Absensi">
-                                    <i class="bi bi-clock-history"></i>
-                                </button>
-                                <button type="button" class="btn btn-primary btn-sm cetak" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Absensi">
-                                    <i class="bi bi-printer-fill"></i>
-                                </button>
+                                <?php if ($data['status'] == 5): // Jika Menunggu Persetujuan 
+                                ?>
+                                    <!-- Tombol Approve -->
+                                    <button type="button" class="btn btn-success btn-sm tombol_persetujuan"
+                                        data-idabsensi="<?php echo $data['id_absensi']; ?>"
+                                        data-aksi="setujui"
+                                        data-bs-toggle="tooltip" title="Setujui Izin">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <!-- Tombol Reject -->
+                                    <button type="button" class="btn btn-danger btn-sm tombol_persetujuan"
+                                        data-idabsensi="<?php echo $data['id_absensi']; ?>"
+                                        data-aksi="tolak"
+                                        data-bs-toggle="tooltip" title="Tolak Izin">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+
+                                    <!-- [PERBAIKAN] Tombol untuk Lihat Bukti -->
+                                    <?php if (!empty($data['file_bukti'])): ?>
+                                        <a href="apps/mahasiswa/bukti_izin/<?php echo htmlspecialchars($data['file_bukti']); ?>"
+                                            target="_blank"
+                                            class="btn btn-info btn-sm"
+                                            data-bs-toggle="tooltip"
+                                            title="Lihat File Bukti">
+                                            <i class="bi bi-paperclip"></i>
+                                        </a>
+                                    <?php endif; ?>
+
+                                <?php else: // Untuk status lainnya 
+                                ?>
+                                    <!-- Tombol Ubah Absensi Manual -->
+                                    <button type="button" class="btn btn-secondary btn-sm absensi"
+                                        id_absensi="<?php echo $data['id_absensi']; ?>"
+                                        data-bs-toggle="tooltip" title="Ubah Absensi Manual">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -183,6 +247,7 @@ include 'config/function.php';
     </div>
 </div>
 
+<!-- Modal -->
 <div class="modal fade" id="modal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -198,78 +263,111 @@ include 'config/function.php';
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- ======================================================= -->
 <!-- JAVASCRIPT KHUSUS UNTUK HALAMAN INI -->
-<!-- ======================================================= -->
 <script>
-    // Inisialisasi Tooltip Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
+    $(document).ready(function() {
+        // ... (Semua script Anda yang lama: Tooltip, #tambah_absensi, .absensi, #tombol_cetak_laporan)
+        // Inisialisasi Tooltip Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
 
-    // Script AJAX untuk halaman Data Absensi
-    $('#tambah_absensi').on('click', function() {
-        $.ajax({
-            url: 'apps/data_absensi/tambah.php',
-            method: 'post',
-            success: function(data) {
-                $('#tampil_data').html(data);
-                document.getElementById("judul").innerHTML = 'Tambah Absensi Manual';
+        // Script AJAX untuk halaman Data Absensi
+        $('#tambah_absensi').on('click', function() {
+            $.ajax({
+                url: 'apps/data_absensi/tambah.php',
+                method: 'post',
+                success: function(data) {
+                    $('#tampil_data').html(data);
+                    document.getElementById("judul").innerHTML = 'Tambah Absensi Manual';
+                }
+            });
+            var myModal = new bootstrap.Modal(document.getElementById('modal'));
+            myModal.show();
+        });
+
+        $('.absensi').on('click', function() {
+            var id_mahasiswa = $(this).attr("id_mahasiswa");
+            var id_absensi = $(this).attr("id_absensi");
+            $.ajax({
+                url: 'apps/data_absensi/absensi.php',
+                method: 'POST',
+                data: {
+                    id_mahasiswa: id_mahasiswa,
+                    id_absensi: id_absensi
+                },
+                success: function(data) {
+                    $('#tampil_data').html(data);
+                    document.getElementById("judul").innerHTML = 'Ubah Data Absensi';
+                }
+            });
+            var myModal = new bootstrap.Modal(document.getElementById('modal'));
+            myModal.show();
+        });
+
+        $('.cetak').on('click', function() {
+            var id_mahasiswa = $(this).attr("id_mahasiswa");
+            $.ajax({
+                url: 'apps/data_absensi/cetak.php',
+                method: 'POST',
+                data: {
+                    id_mahasiswa: id_mahasiswa
+                },
+                success: function(data) {
+                    $('#tampil_data').html(data);
+                    document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
+                }
+            });
+            var myModal = new bootstrap.Modal(document.getElementById('modal'));
+            myModal.show();
+        });
+
+        $('#tombol_cetak_laporan').on('click', function() {
+            $.ajax({
+                url: 'apps/data_absensi/cetak_form.php', // Arahkan ke file form baru
+                method: 'post',
+                success: function(data) {
+                    $('#tampil_data').html(data);
+                    document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
+                }
+            });
+            var myModal = new bootstrap.Modal(document.getElementById('modal'));
+            myModal.show();
+        });
+
+
+        // [TAMBAHKAN BLOK BARU INI]
+        // Aksi untuk tombol persetujuan (Approve/Reject)
+        $('.tombol_persetujuan').on('click', function() {
+            var id_absensi = $(this).data('idabsensi');
+            var aksi = $(this).data('aksi');
+            var konfirmasi_pesan = (aksi == 'setujui') ? 'Menyetujui' : 'Menolak';
+
+            if (confirm(`Anda yakin ingin ${konfirmasi_pesan} pengajuan izin ini?`)) {
+                $.ajax({
+                    url: 'apps/data_absensi/proses_izin.php', // Arahkan ke file proses baru
+                    method: 'POST',
+                    data: {
+                        id_absensi: id_absensi,
+                        aksi: aksi
+                    },
+                    success: function(response) {
+                        if (response.trim() === 'sukses') {
+                            // Muat ulang halaman untuk melihat perubahan
+                            window.location.href = 'index.php?page=data_absensi&approve=berhasil';
+                        } else {
+                            window.location.href = 'index.php?page=data_absensi&approve=gagal';
+                        }
+                    },
+                    error: function() {
+                        alert('Terjadi kesalahan koneksi. Silakan coba lagi.');
+                    }
+                });
             }
         });
-        var myModal = new bootstrap.Modal(document.getElementById('modal'));
-        myModal.show();
-    });
-
-    $('.absensi').on('click', function() {
-        var id_mahasiswa = $(this).attr("id_mahasiswa");
-        var id_absensi = $(this).attr("id_absensi");
-        $.ajax({
-            url: 'apps/data_absensi/absensi.php',
-            method: 'POST',
-            data: {
-                id_mahasiswa: id_mahasiswa,
-                id_absensi: id_absensi
-            },
-            success: function(data) {
-                $('#tampil_data').html(data);
-                document.getElementById("judul").innerHTML = 'Ubah Data Absensi';
-            }
-        });
-        var myModal = new bootstrap.Modal(document.getElementById('modal'));
-        myModal.show();
-    });
-
-    $('.cetak').on('click', function() {
-        var id_mahasiswa = $(this).attr("id_mahasiswa");
-        $.ajax({
-            url: 'apps/data_absensi/cetak.php',
-            method: 'POST',
-            data: {
-                id_mahasiswa: id_mahasiswa
-            },
-            success: function(data) {
-                $('#tampil_data').html(data);
-                document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
-            }
-        });
-        var myModal = new bootstrap.Modal(document.getElementById('modal'));
-        myModal.show();
-    });
-
-    $('#tombol_cetak_laporan').on('click', function() {
-        $.ajax({
-            url: 'apps/data_absensi/cetak_form.php', // Arahkan ke file form baru
-            method: 'post',
-            success: function(data) {
-                $('#tampil_data').html(data);
-                document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
-            }
-        });
-        var myModal = new bootstrap.Modal(document.getElementById('modal'));
-        myModal.show();
     });
 </script>

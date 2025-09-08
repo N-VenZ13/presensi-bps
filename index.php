@@ -35,6 +35,57 @@ if ($username_session != $username_db) {
 // AKHIR DARI BAGIAN 1
 // ==========================================================
 
+// ===================================================================
+// [BARU] LOGIKA OTOMATIS TANDAI TIDAK HADIR UNTUK HARI SEBELUMNYA
+// ===================================================================
+// Logika ini hanya perlu dijalankan sesekali, tidak setiap kali halaman dimuat.
+// Kita gunakan session untuk menandai bahwa pengecekan sudah dilakukan hari ini.
+if (!isset($_SESSION['last_auto_check']) || $_SESSION['last_auto_check'] != date('Y-m-d')) {
+
+    // Tanggal yang akan kita periksa adalah kemarin
+    $tanggal_kemarin = date('Y-m-d', strtotime('-1 day'));
+    // buat  triggeer ngetes
+    // $tanggal_kemarin = '2025-09-08';
+    $hari_kemarin = strtolower(date('l', strtotime($tanggal_kemarin)));
+
+    // Hanya jalankan jika kemarin adalah hari kerja (Senin-Jumat)
+    if ($hari_kemarin != "saturday" && $hari_kemarin != "sunday") {
+
+        // 1. Ambil semua mahasiswa yang seharusnya aktif kemarin
+        $sql_aktif = "SELECT id_mahasiswa FROM tbl_mahasiswa WHERE '$tanggal_kemarin' BETWEEN mulai_magang AND akhir_magang";
+        $hasil_aktif = mysqli_query($kon, $sql_aktif);
+        $mahasiswa_aktif = [];
+        while ($row = mysqli_fetch_assoc($hasil_aktif)) {
+            $mahasiswa_aktif[] = $row['id_mahasiswa'];
+        }
+
+        if (!empty($mahasiswa_aktif)) {
+            // 2. Ambil semua mahasiswa yang SUDAH punya data absensi kemarin
+            $sql_sudah_absen = "SELECT DISTINCT id_mahasiswa FROM tbl_absensi WHERE tanggal = '$tanggal_kemarin'";
+            $hasil_sudah_absen = mysqli_query($kon, $sql_sudah_absen);
+            $mahasiswa_sudah_absen = [];
+            while ($row = mysqli_fetch_assoc($hasil_sudah_absen)) {
+                $mahasiswa_sudah_absen[] = $row['id_mahasiswa'];
+            }
+
+            // 3. Temukan perbedaannya (yang tidak absen)
+            $mahasiswa_tidak_hadir = array_diff($mahasiswa_aktif, $mahasiswa_sudah_absen);
+
+            // 4. Jika ada yang tidak absen, masukkan datanya
+            if (!empty($mahasiswa_tidak_hadir)) {
+                $stmt = mysqli_prepare($kon, "INSERT INTO tbl_absensi (id_mahasiswa, status, tanggal, keterangan) VALUES (?, 3, ?, 'Tidak ada kabar (Otomatis)')");
+                foreach ($mahasiswa_tidak_hadir as $id_mhs) {
+                    mysqli_stmt_bind_param($stmt, "is", $id_mhs, $tanggal_kemarin);
+                    mysqli_stmt_execute($stmt);
+                }
+                mysqli_stmt_close($stmt);
+            }
+        }
+    }
+
+    // Tandai bahwa pengecekan untuk hari ini sudah selesai.
+    $_SESSION['last_auto_check'] = date('Y-m-d');
+}
 
 // ==========================================================
 // [DARI INDEX.PHP LAMA] - BAGIAN 2: MENGAMBIL INFO SITUS
