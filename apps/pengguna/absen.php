@@ -92,7 +92,7 @@ $tanggal_indonesia = MendapatkanHari($nama_hari_inggris) . ", " . date('d') . " 
 
             <?php if ($waktu_sekarang_obj >= $pulang_mulai_obj && $waktu_sekarang_obj <= $pulang_akhir_obj): ?>
                 <form action="apps/pengguna/proses_absen.php" method="post" class="mt-4">
-                    <input type="hidden" name="aksi" value="pulang">
+                    <input type="hidd   en" name="aksi" value="pulang">
                     <button type="submit" class="btn btn-warning btn-lg shadow-sm"><i class="bi bi-box-arrow-out-right me-2"></i> ABSEN PULANG</button>
                 </form>
             <?php else: ?>

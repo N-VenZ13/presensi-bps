@@ -16,10 +16,17 @@ include 'config/function.php';
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Data Absensi</h5>
-        <button type="button" class="btn btn-primary" id="tambah_absensi">
-            <i class="bi bi-plus-lg me-1"></i> Tambah Absensi Manual
-        </button>
+        <div>
+            <button type="button" class="btn btn-secondary" id="tombol_cetak_laporan">
+                <i class="bi bi-printer-fill me-1"></i> Cetak Laporan
+            </button>
+            <!-- me-2 artinya margin-end sebesar 2 unit -->
+            <button type="button" class="btn btn-primary ms-2" id="tambah_absensi">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Absensi Manual
+            </button>
+        </div>
     </div>
+
     <div class="card-body">
 
         <?php
@@ -159,7 +166,7 @@ include 'config/function.php';
                                 echo htmlspecialchars($keterangan_final_admin);
                                 ?>
                             </td>
-                            
+
                             <td class="text-center">
                                 <button type="button" class="btn btn-success btn-sm absensi" id_mahasiswa="<?php echo $data['id_mahasiswa']; ?>" id_absensi="<?php echo $data['id_absensi']; ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Absensi">
                                     <i class="bi bi-clock-history"></i>
@@ -244,6 +251,19 @@ include 'config/function.php';
             data: {
                 id_mahasiswa: id_mahasiswa
             },
+            success: function(data) {
+                $('#tampil_data').html(data);
+                document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';
+            }
+        });
+        var myModal = new bootstrap.Modal(document.getElementById('modal'));
+        myModal.show();
+    });
+
+    $('#tombol_cetak_laporan').on('click', function() {
+        $.ajax({
+            url: 'apps/data_absensi/cetak_form.php', // Arahkan ke file form baru
+            method: 'post',
             success: function(data) {
                 $('#tampil_data').html(data);
                 document.getElementById("judul").innerHTML = 'Cetak Laporan Absensi';

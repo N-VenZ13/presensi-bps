@@ -304,10 +304,12 @@ $page = $_GET['page'] ?? 'beranda'; // Default ke beranda jika tidak ada
             function initializeSidebar() {
                 if (window.innerWidth > 768) {
                     // Jika layar besar, pastikan sidebar selalu terlihat saat load
-                    wrapper.classList.remove('toggled');
+                    // wrapper.classList.remove('toggled');
+                    wrapper.classList.add('toggled');
                 } else {
                     // Jika layar kecil, pastikan sidebar selalu tersembunyi saat load
-                    wrapper.classList.add('toggled');
+                    // wrapper.classList.add('toggled');
+                    wrapper.classList.remove('toggled');
                 }
             }
 
@@ -335,7 +337,7 @@ $page = $_GET['page'] ?? 'beranda'; // Default ke beranda jika tidak ada
                     method: 'post',
                     success: function(data) {
                         $('#tampil_data').html(data);
-                        document.getElementById("judul").innerHTML = 'Tambah Mahasiswa';
+                        document.getElementById("judul").innerHTML = 'Tambah Peserta';
                     }
                 });
                 var myModal = new bootstrap.Modal(document.getElementById('modal'));

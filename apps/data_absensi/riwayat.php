@@ -30,8 +30,21 @@ $id_mahasiswa = $_SESSION['id_mahasiswa'];
                         <label class="form-label">Sampai Tanggal</label>
                         <input type="date" name="tanggal_akhir" class="form-control" value="<?php echo isset($_GET['tanggal_akhir']) ? $_GET['tanggal_akhir'] : ''; ?>">
                     </div>
-                    <div class="col-md-4">
+                    <!-- <div class="col-md-4">
                         <button type="submit" class="btn btn-info w-100"><i class="bi bi-search"></i> Tampilkan</button>
+                    </div> -->
+                    <div class="col-md-4">
+                        <div class="btn-group w-100">
+                            <div>
+                                <button type="submit" class="btn btn-info">
+                                    <i class="bi bi-search"></i> Tampilkan
+                                </button>
+                                <!-- [BARU] Tombol Cetak -->
+                                <button type="button" id="tombol_cetak_riwayat" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-printer-fill"></i> Cetak
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -124,3 +137,26 @@ $id_mahasiswa = $_SESSION['id_mahasiswa'];
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('#tombol_cetak_riwayat').on('click', function() {
+            // Ambil nilai dari form filter
+            var tanggal_awal = $('input[name="tanggal_awal"]').val();
+            var tanggal_akhir = $('input[name="tanggal_akhir"]').val();
+
+            // Validasi: pastikan tanggal sudah diisi
+            if (tanggal_awal === '' || tanggal_akhir === '') {
+                alert('Silakan pilih rentang tanggal terlebih dahulu sebelum mencetak.');
+                return; // Hentikan proses jika tanggal kosong
+            }
+            
+            // Buat URL untuk file cetak dengan parameter
+            var id_mahasiswa = '<?php echo $id_mahasiswa; ?>';
+            var url_cetak = `apps/data_absensi/cetak_peserta.php?id_mahasiswa=${id_mahasiswa}&tanggal_awal=${tanggal_awal}&tanggal_akhir=${tanggal_akhir}&cetak_mahasiswa=1`;
+            
+            // Buka URL di tab baru
+            window.open(url_cetak, '_blank');
+        });
+    });
+</script>

@@ -167,7 +167,7 @@
             method: 'post',
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Tambah Mahasiswa';
+                document.getElementById("judul").innerHTML = 'Tambah Peserta';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
@@ -182,7 +182,7 @@
             data: {id_mahasiswa:id_mahasiswa},
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Detail Mahasiswa';
+                document.getElementById("judul").innerHTML = 'Detail Peserta';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
@@ -197,7 +197,7 @@
             data: {kode_mahasiswa:kode_mahasiswa},
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Setting Mahasiswa';
+                document.getElementById("judul").innerHTML = 'Setting Peserta';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
@@ -212,7 +212,7 @@
             data: {id_mahasiswa:id_mahasiswa},
             success:function(data){
                 $('#tampil_data').html(data);  
-                document.getElementById("judul").innerHTML='Edit Mahasiswa';
+                document.getElementById("judul").innerHTML = 'Edit Peserta';
             }
         });
         var myModal = new bootstrap.Modal(document.getElementById('modal'));
@@ -220,6 +220,6 @@
     });
 
    $('.btn-hapus-mahasiswa').on('click',function(){
-        return confirm("Apakah Anda yakin ingin menghapus data mahasiswa ini?");
+        return confirm("Apakah Anda yakin ingin menghapus data peserta ini?");
     });
 </script>

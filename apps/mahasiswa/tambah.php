@@ -78,8 +78,8 @@ if (isset($_POST['tambah_mahasiswa'])) {
             <input type="text" name="nama" id="nama" class="form-control" placeholder="Masukkan Nama Lengkap" required>
         </div>
         <div class="col-md-6 mb-3">
-            <label for="nim" class="form-label">Nomor Induk Mahasiswa (NIM)</label>
-            <input type="text" name="nim" id="nim" class="form-control" placeholder="Masukkan NIM" required>
+            <label for="nim" class="form-label">Nomor Induk</label>
+            <input type="text" name="nim" id="nim" class="form-control" placeholder="Masukkan Nomor Induk" required>
         </div>
         <div class="col-md-6 mb-3">
             <label for="nama_instansi_asal" class="form-label">Asal Instansi</label>
