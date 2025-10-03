@@ -3,9 +3,9 @@ session_start();
 include '../../config/database.php';
 
 if (isset($_POST['ubah_aplikasi'])) {
-    
+
     if ($_SESSION['level'] != 'Admin') die("Akses ditolak.");
-    
+
     $id = $_POST['id'];
     $nama_instansi = htmlspecialchars($_POST['nama_instansi']);
     $pimpinan = htmlspecialchars($_POST['pimpinan']);
@@ -13,6 +13,8 @@ if (isset($_POST['ubah_aplikasi'])) {
     $alamat = htmlspecialchars($_POST['alamat']);
     $no_telp = htmlspecialchars($_POST['no_telp']);
     $website = htmlspecialchars($_POST['website']);
+    $latitude_kantor = $_POST['latitude_kantor'];
+    $longitude_kantor = $_POST['longitude_kantor'];
     $logo_sebelumnya = $_POST['logo_sebelumnya'];
     $logo_final = $logo_sebelumnya;
 
@@ -36,10 +38,14 @@ if (isset($_POST['ubah_aplikasi'])) {
     }
 
     // [PERBAIKAN KEAMANAN]
-    $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=? WHERE id_site=?";
+    // $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=? WHERE id_site=?";
+    // $stmt = mysqli_prepare($kon, $sql);
+    // mysqli_stmt_bind_param($stmt, "sssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $id);
+    $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=?, latitude_kantor=?, longitude_kantor=? WHERE id_site=?";
     $stmt = mysqli_prepare($kon, $sql);
-    mysqli_stmt_bind_param($stmt, "sssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $id);
-    
+    // Perhatikan 'dd' ditambahkan untuk tipe data decimal dan 2 variabel baru
+    mysqli_stmt_bind_param($stmt, "sssssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $latitude_kantor, $longitude_kantor, $id);
+
     if (mysqli_stmt_execute($stmt)) {
         header("Location:../../index.php?page=pengaturan&edit=berhasil");
     } else {
@@ -47,4 +53,3 @@ if (isset($_POST['ubah_aplikasi'])) {
     }
     exit();
 }
-?>

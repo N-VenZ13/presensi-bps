@@ -78,6 +78,23 @@ if ($_SESSION["level"] != 'Admin') {
                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($data['website']); ?>" name="website">
                         </div>
                     </div>
+                    <!-- fitur baru GPS -->
+
+                    <hr>
+                    <h6 class="text-muted">Pengaturan Lokasi Absensi</h6>
+                    <div class="form-text mb-2">
+                        Klik kanan pada lokasi kantor Anda di Google Maps untuk mendapatkan koordinat Latitude dan Longitude.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Latitude Kantor</label>
+                            <input type="text" class="form-control" name="latitude_kantor" placeholder="-6.208763" value="<?php echo htmlspecialchars($data['latitude_kantor']); ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Longitude Kantor</label>
+                            <input type="text" class="form-control" name="longitude_kantor" placeholder="106.845599" value="<?php echo htmlspecialchars($data['longitude_kantor']); ?>">
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Logo Instansi</label>
                         <div class="row">

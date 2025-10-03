@@ -201,42 +201,35 @@ include 'config/function.php';
                                 ?>
                             </td>
                             <td class="text-center">
-                                <?php if ($data['status'] == 5): // Jika Menunggu Persetujuan 
+                                <?php if ($data['status'] == 5): // Menunggu Persetujuan 
                                 ?>
-                                    <!-- Tombol Approve -->
-                                    <button type="button" class="btn btn-success btn-sm tombol_persetujuan"
-                                        data-idabsensi="<?php echo $data['id_absensi']; ?>"
-                                        data-aksi="setujui"
-                                        data-bs-toggle="tooltip" title="Setujui Izin">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <!-- Tombol Reject -->
-                                    <button type="button" class="btn btn-danger btn-sm tombol_persetujuan"
-                                        data-idabsensi="<?php echo $data['id_absensi']; ?>"
-                                        data-aksi="tolak"
-                                        data-bs-toggle="tooltip" title="Tolak Izin">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-
-                                    <!-- [PERBAIKAN] Tombol untuk Lihat Bukti -->
+                                    <!-- Tombol Approve & Reject -->
+                                    <button type="button" class="btn btn-success btn-sm tombol_persetujuan" data-idabsensi="<?php echo $data['id_absensi']; ?>" data-aksi="setujui" data-bs-toggle="tooltip" title="Setujui Izin"><i class="bi bi-check-lg"></i></button>
+                                    <button type="button" class="btn btn-danger btn-sm tombol_persetujuan" data-idabsensi="<?php echo $data['id_absensi']; ?>" data-aksi="tolak" data-bs-toggle="tooltip" title="Tolak Izin"><i class="bi bi-x-lg"></i></button>
+                                    <!-- Tombol lihat bukti izin jika ada -->
                                     <?php if (!empty($data['file_bukti'])): ?>
-                                        <a href="apps/mahasiswa/bukti_izin/<?php echo htmlspecialchars($data['file_bukti']); ?>"
-                                            target="_blank"
-                                            class="btn btn-info btn-sm"
-                                            data-bs-toggle="tooltip"
-                                            title="Lihat File Bukti">
+                                        <a href="apps/mahasiswa/bukti_izin/<?php echo htmlspecialchars($data['file_bukti']); ?>" target="_blank" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Lihat Bukti Izin"><i class="bi bi-paperclip"></i></a>
+                                    <?php endif; ?>
+
+                                <?php else: // Untuk status lainnya (Hadir, Izin Diterima, dll.) 
+                                ?>
+                                    <!-- Tombol Ubah Absensi Manual -->
+                                    <button type="button" class="btn btn-secondary btn-sm absensi" id_absensi="<?php echo $data['id_absensi']; ?>" data-bs-toggle="tooltip" title="Ubah Absensi Manual"><i class="bi bi-pencil-square"></i></button>
+
+                                    <!-- [BARU] Tombol Lihat Foto Absen jika status Hadir dan ada foto -->
+                                    <?php if ($data['status'] == 1 && !empty($data['foto_absen'])): ?>
+                                        <a href="apps/mahasiswa/foto_absen/<?php echo htmlspecialchars($data['foto_absen']); ?>" target="_blank" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Lihat Foto Absen">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <!-- [BARU] Tombol Lihat Bukti Izin (juga untuk status yg sudah final) -->
+                                    <?php if (in_array($data['status'], [2, 4]) && !empty($data['file_bukti'])): ?>
+                                        <a href="apps/mahasiswa/bukti_izin/<?php echo htmlspecialchars($data['file_bukti']); ?>" target="_blank" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Lihat Bukti Izin">
                                             <i class="bi bi-paperclip"></i>
                                         </a>
                                     <?php endif; ?>
 
-                                <?php else: // Untuk status lainnya 
-                                ?>
-                                    <!-- Tombol Ubah Absensi Manual -->
-                                    <button type="button" class="btn btn-secondary btn-sm absensi"
-                                        id_absensi="<?php echo $data['id_absensi']; ?>"
-                                        data-bs-toggle="tooltip" title="Ubah Absensi Manual">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
                                 <?php endif; ?>
                             </td>
                         </tr>
