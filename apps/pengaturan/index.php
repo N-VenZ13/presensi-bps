@@ -111,6 +111,18 @@ if ($_SESSION["level"] != 'Admin') {
                             </div>
                         </div>
                     </div>
+
+                    <!-- baru template pesan wa -->
+                    <hr>
+                    <h6 class="text-muted">Template Pesan Notifikasi WhatsApp</h6>
+                    <div class="mb-3">
+                        <label for="template_wa" class="form-label">Isi Pesan</label>
+                        <textarea name="template_wa" id="template_wa" class="form-control" rows="8"><?php echo htmlspecialchars($data['template_wa']); ?></textarea>
+                        <div class="form-text">
+                            Gunakan placeholder berikut untuk data dinamis:
+                            <code>{nama_mahasiswa}</code>, <code>{tanggal}</code>, <code>{waktu}</code>, <code>{keterangan}</code>
+                        </div>
+                    </div>
                     <hr>
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary" name="ubah_aplikasi"><i class="bi bi-save"></i> Simpan Perubahan</button>

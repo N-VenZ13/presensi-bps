@@ -15,6 +15,7 @@ if (isset($_POST['ubah_aplikasi'])) {
     $website = htmlspecialchars($_POST['website']);
     $latitude_kantor = $_POST['latitude_kantor'];
     $longitude_kantor = $_POST['longitude_kantor'];
+    $template_wa = $_POST['template_wa'];
     $logo_sebelumnya = $_POST['logo_sebelumnya'];
     $logo_final = $logo_sebelumnya;
 
@@ -41,10 +42,10 @@ if (isset($_POST['ubah_aplikasi'])) {
     // $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=? WHERE id_site=?";
     // $stmt = mysqli_prepare($kon, $sql);
     // mysqli_stmt_bind_param($stmt, "sssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $id);
-    $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=?, latitude_kantor=?, longitude_kantor=? WHERE id_site=?";
+    $sql = "UPDATE tbl_site SET nama_instansi=?, pimpinan=?, pembimbing=?, alamat=?, no_telp=?, website=?, logo=?, latitude_kantor=?, longitude_kantor=?, template_wa=? WHERE id_site=?";
     $stmt = mysqli_prepare($kon, $sql);
     // Perhatikan 'dd' ditambahkan untuk tipe data decimal dan 2 variabel baru
-    mysqli_stmt_bind_param($stmt, "sssssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $latitude_kantor, $longitude_kantor, $id);
+    mysqli_stmt_bind_param($stmt, "ssssssssssi", $nama_instansi, $pimpinan, $pembimbing, $alamat, $no_telp, $website, $logo_final, $latitude_kantor, $longitude_kantor, $template_wa, $id);
 
     if (mysqli_stmt_execute($stmt)) {
         header("Location:../../index.php?page=pengaturan&edit=berhasil");

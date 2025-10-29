@@ -19,7 +19,7 @@ $waktu_sekarang = date("H:i:s");
 $aksi = $_POST['aksi'];
 
 // 4. Ambil Pengaturan dari Database
-$hasil_setting_situs = mysqli_query($kon, "SELECT latitude_kantor, longitude_kantor FROM tbl_site LIMIT 1");
+$hasil_setting_situs = mysqli_query($kon, "SELECT latitude_kantor, longitude_kantor, template_wa FROM tbl_site LIMIT 1");
 $setting_situs = mysqli_fetch_assoc($hasil_setting_situs);
 $hasil_setting_absen = mysqli_query($kon, "SELECT masuk_akhir, pulang_mulai FROM tbl_setting_absensi LIMIT 1");
 $setting_absen = mysqli_fetch_assoc($hasil_setting_absen);
@@ -86,14 +86,36 @@ if ($aksi == 'masuk_hadir' && !$sudah_ada_data) {
             $base_url = "https://magang.sipaten.web.id/";
             $url_gambar_publik = $base_url . "apps/mahasiswa/foto_absen/" . $nama_file_foto;
 
-            $pesan = "Yth. Bapak/Ibu Orang Tua/Wali/Pembimbing dari " . $data_mahasiswa['nama'] . ",\n\n";
-            $pesan .= "Ananda telah berhasil melakukan presensi masuk pada:\n";
-            $pesan .= "Tanggal: " . date('d/m/Y') . "\n";
-            $pesan .= "Waktu: " . $waktu_sekarang . "\n\n";
-            if ($keterangan) {
-                $pesan .= "Keterangan: " . $keterangan . "\n\n";
-            }
-            $pesan .= "Terlampir adalah foto bukti kehadiran. Terima kasih.";
+            // $pesan = "Yth. Bapak/Ibu Orang Tua/Wali/Pembimbing dari " . $data_mahasiswa['nama'] . ",\n\n";
+            // $pesan .= "Ananda telah berhasil melakukan presensi masuk pada:\n";
+            // $pesan .= "Tanggal: " . date('d/m/Y') . "\n";
+            // $pesan .= "Waktu: " . $waktu_sekarang . "\n\n";
+            // if ($keterangan) {
+            //     $pesan .= "Keterangan: " . $keterangan . "\n\n";
+            // }
+            // $pesan .= "Terlampir adalah foto bukti kehadiran. Terima kasih.";
+
+            // edit pesan dengan template
+            // 1. Ambil template mentah dari database
+
+            $template_mentah = $setting_situs['template_wa'];
+
+            // 2. Siapkan data pengganti
+            $data_pengganti = [
+                '{nama_mahasiswa}' => $data_mahasiswa['nama'],
+                '{tanggal}'        => date('d/m/Y'),
+                '{waktu}'          => $waktu_sekarang,
+                '{keterangan}'     => $keterangan ? $keterangan : 'Tepat Waktu' // Beri nilai default jika tidak terlambat
+            ];
+
+            // 3. Ganti semua placeholder dengan data sebenarnya
+            $pesan = str_replace(array_keys($data_pengganti), array_values($data_pengganti), $template_mentah);
+
+            // 4. Tambahkan ID Pesan acak untuk testing (opsional)
+            $pesan .= "\n\n(ID Pesan: #" . rand(1000, 9999) . ")";
+
+            // 5. Panggil fungsi pengirim (tetap sama)
+            // kirimNotifikasiWA($data_mahasiswa['no_telp_ortu'], $pesan, $url_gambar_publik);
 
             // 3. Kirim notifikasi ke Orang Tua (jika nomor ada)
             if (!empty($data_mahasiswa['no_telp_ortu'])) {
