@@ -27,6 +27,7 @@ if (isset($_POST['edit_mahasiswa'])) {
     $alamat = htmlspecialchars($_POST["alamat"]);
     $foto_saat_ini = $_POST['foto_saat_ini'];
     $foto_final = $foto_saat_ini; // Set foto final ke foto saat ini sebagai default
+    $no_telp_ortu = htmlspecialchars($_POST["no_telp_ortu"]);
 
     // Proses upload foto baru jika ada
     if (isset($_FILES['foto_baru']) && $_FILES['foto_baru']['error'] == 0) {
@@ -60,9 +61,15 @@ if (isset($_POST['edit_mahasiswa'])) {
     }
 
     // [PERBAIKAN KEAMANAN] Update tbl_mahasiswa menggunakan prepared statement
-    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, foto=? WHERE id_mahasiswa=?";
+    // $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, foto=? WHERE id_mahasiswa=?";
+    // $stmt_update = mysqli_prepare($kon, $sql_update);
+    // mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
+    // $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
+    // baru untuk whatsapp
+    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, no_telp_ortu=?, foto=? WHERE id_mahasiswa=?";
     $stmt_update = mysqli_prepare($kon, $sql_update);
-    mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
+    // Perhatikan ada 's' tambahan dan variabel $no_telp_ortu
+    mysqli_stmt_bind_param($stmt_update, "ssssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $foto_final, $id_mahasiswa);
     $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
 
     // Finalisasi Transaksi
@@ -125,6 +132,12 @@ $data = mysqli_fetch_array($hasil);
         <div class="col-md-12 mb-3">
             <label for="no_telp" class="form-label">No. Telepon</label>
             <input type="text" name="no_telp" id="no_telp" class="form-control" value="<?php echo htmlspecialchars($data['no_telp']); ?>" required>
+        </div>
+         <!-- [TAMBAHAN] Input field baru untuk No. Telepon Orang Tua -->
+        <div class="col-md-6 mb-3">
+            <label for="no_telp_ortu" class="form-label">No. Telepon Orang Tua (WhatsApp)</label>
+            <input type="text" name="no_telp_ortu" id="no_telp_ortu" class="form-control" value="<?php echo htmlspecialchars($data['no_telp_ortu']); ?>" placeholder="Format: 628xxxxxxxxxx">
+            <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
         </div>
         <div class="col-md-12 mb-3">
             <label for="alamat" class="form-label">Alamat</label>

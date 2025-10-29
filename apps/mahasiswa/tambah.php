@@ -21,6 +21,7 @@ if (isset($_POST['tambah_mahasiswa'])) {
     $akhir_magang = $_POST["akhir_magang"];
     $no_telp = htmlspecialchars($_POST["no_telp"]);
     $alamat = htmlspecialchars($_POST["alamat"]);
+    $no_telp_ortu = htmlspecialchars($_POST["no_telp_ortu"]);
 
     // [PERBAIKAN KEAMANAN] Generate kode_mahasiswa dengan lebih aman
     $query_id = mysqli_query($kon, "SELECT MAX(id_mahasiswa) as id_terbesar FROM tbl_mahasiswa");
@@ -51,9 +52,16 @@ if (isset($_POST['tambah_mahasiswa'])) {
     }
 
     // [PERBAIKAN KEAMANAN] Insert ke tbl_mahasiswa menggunakan prepared statement
-    $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // $stmt_mahasiswa = mysqli_prepare($kon, $sql_mahasiswa);
+    // mysqli_stmt_bind_param($stmt_mahasiswa, "ssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final);
+    // $simpan_mahasiswa = mysqli_stmt_execute($stmt_mahasiswa);
+
+    // baru untuk whatsapp
+     $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, no_telp_ortu, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt_mahasiswa = mysqli_prepare($kon, $sql_mahasiswa);
-    mysqli_stmt_bind_param($stmt_mahasiswa, "ssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final);
+    // Perhatikan ada 's' tambahan di bind_param untuk no_telp_ortu
+    mysqli_stmt_bind_param($stmt_mahasiswa, "sssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $foto_final);
     $simpan_mahasiswa = mysqli_stmt_execute($stmt_mahasiswa);
 
     // Finalisasi Transaksi
@@ -100,6 +108,12 @@ if (isset($_POST['tambah_mahasiswa'])) {
         <div class="col-md-12 mb-3">
             <label for="no_telp" class="form-label">No. Telepon</label>
             <input type="text" name="no_telp" id="no_telp" class="form-control" placeholder="Masukkan Nomor Telepon Aktif" required>
+        </div>
+        <!-- [TAMBAHAN] Input field baru untuk No. Telepon Orang Tua -->
+        <div class="col-md-6 mb-3">
+            <label for="no_telp_ortu" class="form-label">No. Telepon Orang Tua (WhatsApp)</label>
+            <input type="text" name="no_telp_ortu" id="no_telp_ortu" class="form-control" placeholder="Format: 628xxxxxxxxxx">
+            <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
         </div>
         <div class="col-md-12 mb-3">
             <label for="alamat" class="form-label">Alamat</label>

@@ -354,4 +354,55 @@ function hitungJarak($lat1, $lon1, $lat2, $lon2) {
   $miles = $dist * 60 * 1.1515;
   return ($miles * 1.609344 * 1000); // Hasil dalam meter
 }
+
+function kirimNotifikasiWA($nomor_tujuan, $pesan, $url_gambar = null) {
+    $token = "8oJ5sFqnfDwmT9n1ir7e"; // Token Fonnte Anda
+
+    // Siapkan data dalam bentuk array PHP
+    $payload = [
+        'target' => $nomor_tujuan,
+        'message' => $pesan
+    ];
+
+    // Jika ada URL gambar, tambahkan ke array
+    if ($url_gambar) {
+        $payload['url'] = $url_gambar;
+    }
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+      CURLOPT_URL => "https://api.fonnte.com/send",
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_ENCODING => "",
+      CURLOPT_MAXREDIRS => 10,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      CURLOPT_CUSTOMREQUEST => "POST",
+      
+      // [PERBAIKAN] Kirim array PHP secara langsung.
+      // Ini adalah cara paling standar dan akan di-encode oleh cURL sebagai form-data.
+      CURLOPT_POSTFIELDS => $payload,
+
+      // Header HANYA berisi otorisasi.
+      CURLOPT_HTTPHEADER => array(
+        "Authorization: " . $token
+      ),
+    ));
+
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    // Logging untuk verifikasi
+    if ($err) {
+        // file_put_contents('wa_log.txt', date('Y-m-d H:i:s') . " - cURL Error: " . $err . "\n", FILE_APPEND);
+    } else {
+        // file_put_contents('wa_log.txt', date('Y-m-d H:i:s') . " - Fonnte Response: " . $response . "\n", FILE_APPEND);
+    }
+    
+    return $response;
+}
+
 ?>
