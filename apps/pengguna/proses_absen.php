@@ -75,17 +75,18 @@ if ($aksi == 'masuk_hadir' && !$sudah_ada_data) {
 
     // Kirim Notifikasi WhatsApp jika eksekusi berhasil
     if ($eksekusi_berhasil) {
-        $stmt_mhs = mysqli_prepare($kon, "SELECT nama, no_telp_ortu FROM tbl_mahasiswa WHERE id_mahasiswa = ?");
+        // 1. Ambil nama mahasiswa, no telp ortu, dan no telp guru
+        $stmt_mhs = mysqli_prepare($kon, "SELECT nama, no_telp_ortu, no_telp_guru FROM tbl_mahasiswa WHERE id_mahasiswa = ?");
         mysqli_stmt_bind_param($stmt_mhs, "i", $id_mahasiswa);
         mysqli_stmt_execute($stmt_mhs);
         $data_mahasiswa = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_mhs));
 
-        if ($data_mahasiswa && !empty($data_mahasiswa['no_telp_ortu'])) {
-            // GANTI DENGAN URL PUBLIK ANDA (NGROK ATAU DOMAIN ASLI)
-            $base_url = "https://magang.sipaten.web.id/"; 
+        if ($data_mahasiswa) {
+            // 2. Siapkan URL gambar dan isi pesan (sama untuk keduanya)
+            $base_url = "https://magang.sipaten.web.id/";
             $url_gambar_publik = $base_url . "apps/mahasiswa/foto_absen/" . $nama_file_foto;
-            
-            $pesan = "Yth. Orang Tua/Wali dari " . $data_mahasiswa['nama'] . ",\n\n";
+
+            $pesan = "Yth. Bapak/Ibu Orang Tua/Wali/Pembimbing dari " . $data_mahasiswa['nama'] . ",\n\n";
             $pesan .= "Ananda telah berhasil melakukan presensi masuk pada:\n";
             $pesan .= "Tanggal: " . date('d/m/Y') . "\n";
             $pesan .= "Waktu: " . $waktu_sekarang . "\n\n";
@@ -93,8 +94,17 @@ if ($aksi == 'masuk_hadir' && !$sudah_ada_data) {
                 $pesan .= "Keterangan: " . $keterangan . "\n\n";
             }
             $pesan .= "Terlampir adalah foto bukti kehadiran. Terima kasih.";
-            
-            kirimNotifikasiWA($data_mahasiswa['no_telp_ortu'], $pesan, $url_gambar_publik);
+
+            // 3. Kirim notifikasi ke Orang Tua (jika nomor ada)
+            if (!empty($data_mahasiswa['no_telp_ortu'])) {
+                kirimNotifikasiWA($data_mahasiswa['no_telp_ortu'], $pesan, $url_gambar_publik);
+                sleep(2); // Beri jeda 2 detik untuk menghindari rate limit API
+            }
+
+            // 4. Kirim notifikasi ke Guru (jika nomor ada)
+            if (!empty($data_mahasiswa['no_telp_guru'])) {
+                kirimNotifikasiWA($data_mahasiswa['no_telp_guru'], $pesan, $url_gambar_publik);
+            }
         }
     }
 }
@@ -150,4 +160,3 @@ if ($aksi == 'masuk_hadir') {
 
 header("Location: " . $redirect_url);
 exit();
-?>

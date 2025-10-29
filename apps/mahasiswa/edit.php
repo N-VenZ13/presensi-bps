@@ -28,10 +28,11 @@ if (isset($_POST['edit_mahasiswa'])) {
     $foto_saat_ini = $_POST['foto_saat_ini'];
     $foto_final = $foto_saat_ini; // Set foto final ke foto saat ini sebagai default
     $no_telp_ortu = htmlspecialchars($_POST["no_telp_ortu"]);
+    $no_telp_guru = htmlspecialchars($_POST["no_telp_guru"]);
 
     // Proses upload foto baru jika ada
     if (isset($_FILES['foto_baru']) && $_FILES['foto_baru']['error'] == 0) {
-        $ekstensi_diperbolehkan = array('png','jpg','jpeg','gif');
+        $ekstensi_diperbolehkan = array('png', 'jpg', 'jpeg', 'gif');
         $nama_foto = $_FILES['foto_baru']['name'];
         $x = explode('.', $nama_foto);
         $ekstensi = strtolower(end($x));
@@ -66,10 +67,16 @@ if (isset($_POST['edit_mahasiswa'])) {
     // mysqli_stmt_bind_param($stmt_update, "sssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $foto_final, $id_mahasiswa);
     // $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
     // baru untuk whatsapp
-    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, no_telp_ortu=?, foto=? WHERE id_mahasiswa=?";
+    // $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, no_telp_ortu=?, no_telp_guru=?, foto=? WHERE id_mahasiswa=?";
+    // $stmt_update = mysqli_prepare($kon, $sql_update);
+    // // Perhatikan ada 's' tambahan dan variabel $no_telp_ortu
+    // mysqli_stmt_bind_param($stmt_update, "sssssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $no_telp_guru, $foto_final, $id_mahasiswa);
+    // $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
+
+    $sql_update = "UPDATE tbl_mahasiswa SET nama=?, nama_instansi_asal=?, jurusan=?, nim=?, mulai_magang=?, akhir_magang=?, alamat=?, no_telp=?, no_telp_ortu=?, no_telp_guru=?, foto=? WHERE id_mahasiswa=?";
     $stmt_update = mysqli_prepare($kon, $sql_update);
-    // Perhatikan ada 's' tambahan dan variabel $no_telp_ortu
-    mysqli_stmt_bind_param($stmt_update, "ssssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $foto_final, $id_mahasiswa);
+    // Tipe data diubah menjadi "sssssssssssi" (12 parameter)
+    mysqli_stmt_bind_param($stmt_update, "sssssssssssi", $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $no_telp_guru, $foto_final, $id_mahasiswa);
     $edit_mahasiswa = mysqli_stmt_execute($stmt_update);
 
     // Finalisasi Transaksi
@@ -133,12 +140,18 @@ $data = mysqli_fetch_array($hasil);
             <label for="no_telp" class="form-label">No. Telepon</label>
             <input type="text" name="no_telp" id="no_telp" class="form-control" value="<?php echo htmlspecialchars($data['no_telp']); ?>" required>
         </div>
-         <!-- [TAMBAHAN] Input field baru untuk No. Telepon Orang Tua -->
+        <!-- [TAMBAHAN] Input field baru untuk No. Telepon Orang Tua -->
         <div class="col-md-6 mb-3">
             <label for="no_telp_ortu" class="form-label">No. Telepon Orang Tua (WhatsApp)</label>
             <input type="text" name="no_telp_ortu" id="no_telp_ortu" class="form-control" value="<?php echo htmlspecialchars($data['no_telp_ortu']); ?>" placeholder="Format: 628xxxxxxxxxx">
             <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
         </div>
+        <div class="col-md-6 mb-3">
+            <label for="no_telp_guru" class="form-label">No. Telepon Guru/Pembimbing (WhatsApp)</label>
+            <input type="text" name="no_telp_guru" id="no_telp_guru" class="form-control" value="<?php echo htmlspecialchars($data['no_telp_guru']); ?>" placeholder="Format: 628xxxxxxxxxx">
+            <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
+        </div>
+
         <div class="col-md-12 mb-3">
             <label for="alamat" class="form-label">Alamat</label>
             <textarea class="form-control" name="alamat" id="alamat" rows="3"><?php echo htmlspecialchars($data['alamat']); ?></textarea>

@@ -22,6 +22,7 @@ if (isset($_POST['tambah_mahasiswa'])) {
     $no_telp = htmlspecialchars($_POST["no_telp"]);
     $alamat = htmlspecialchars($_POST["alamat"]);
     $no_telp_ortu = htmlspecialchars($_POST["no_telp_ortu"]);
+    $no_telp_guru = htmlspecialchars($_POST["no_telp_guru"]);
 
     // [PERBAIKAN KEAMANAN] Generate kode_mahasiswa dengan lebih aman
     $query_id = mysqli_query($kon, "SELECT MAX(id_mahasiswa) as id_terbesar FROM tbl_mahasiswa");
@@ -58,10 +59,10 @@ if (isset($_POST['tambah_mahasiswa'])) {
     // $simpan_mahasiswa = mysqli_stmt_execute($stmt_mahasiswa);
 
     // baru untuk whatsapp
-     $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, no_telp_ortu, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql_mahasiswa = "INSERT INTO tbl_mahasiswa (kode_mahasiswa, nama, nama_instansi_asal, jurusan, nim, mulai_magang, akhir_magang, alamat, no_telp, no_telp_ortu, no_telp_guru, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt_mahasiswa = mysqli_prepare($kon, $sql_mahasiswa);
     // Perhatikan ada 's' tambahan di bind_param untuk no_telp_ortu
-    mysqli_stmt_bind_param($stmt_mahasiswa, "sssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $foto_final);
+    mysqli_stmt_bind_param($stmt_mahasiswa, "ssssssssssss", $kode_mahasiswa, $nama, $nama_instansi_asal, $jurusan, $nim, $mulai_magang, $akhir_magang, $alamat, $no_telp, $no_telp_ortu, $no_telp_guru, $foto_final);
     $simpan_mahasiswa = mysqli_stmt_execute($stmt_mahasiswa);
 
     // Finalisasi Transaksi
@@ -115,6 +116,12 @@ if (isset($_POST['tambah_mahasiswa'])) {
             <input type="text" name="no_telp_ortu" id="no_telp_ortu" class="form-control" placeholder="Format: 628xxxxxxxxxx">
             <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
         </div>
+        <div class="col-md-6 mb-3">
+            <label for="no_telp_guru" class="form-label">No. Telp Guru/Pembimbing (WA)</label>
+            <input type="text" name="no_telp_guru" id="no_telp_guru" class="form-control" placeholder="Format: 628xxxxxxxxxx">
+            <div class="form-text">Awali dengan 62. Kosongkan jika tidak ada.</div>
+        </div>
+
         <div class="col-md-12 mb-3">
             <label for="alamat" class="form-label">Alamat</label>
             <textarea class="form-control" name="alamat" id="alamat" rows="3" placeholder="Masukkan Alamat Lengkap"></textarea>
