@@ -73,7 +73,7 @@ if (!isset($_SESSION['last_auto_check']) || $_SESSION['last_auto_check'] != date
 
             // 4. Jika ada yang tidak absen, masukkan datanya
             if (!empty($mahasiswa_tidak_hadir)) {
-                $stmt = mysqli_prepare($kon, "INSERT INTO tbl_absensi (id_mahasiswa, status, tanggal, keterangan) VALUES (?, 3, ?, 'Tidak ada kabar (Otomatis)')");
+                $stmt = mysqli_prepare($kon, "INSERT INTO tbl_absensi (id_mahasiswa, status, tanggal, keterangan) VALUES (?, 3, ?, 'Tidak ada kabar')");
                 foreach ($mahasiswa_tidak_hadir as $id_mhs) {
                     mysqli_stmt_bind_param($stmt, "is", $id_mhs, $tanggal_kemarin);
                     mysqli_stmt_execute($stmt);

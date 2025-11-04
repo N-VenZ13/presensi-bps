@@ -28,19 +28,73 @@ if (isset($_POST['cetak']) && isset($_SESSION['level']) && $_SESSION['level'] ==
     header('Content-Disposition: inline; filename="'.$namafile.'"');
 
     $pdf = new FPDF('P', 'mm','Letter');
-    $pdf->AddPage();
+    // $pdf->AddPage();
 
     // KOP Laporan
-    $pdf->Image('../../apps/pengaturan/logo/'.$row_site['logo'],15,5,20,20);
-    $pdf->SetFont('Arial','B',21);
-    $pdf->Cell(0,7,strtoupper($row_site['nama_instansi']),0,1,'C');
-    $pdf->SetFont('Arial','B',10);
-    $pdf->Cell(0,7,$row_site['alamat'].', Telp '.$row_site['no_telp'],0,1,'C');
-    $pdf->Cell(0,7,$row_site['website'],0,1,'C');
+    // $pdf->Image('../../apps/pengaturan/logo/'.$row_site['logo'],15,5,20,20);
+    // $pdf->SetFont('Arial','B',21);
+    // $pdf->Cell(0,7,strtoupper($row_site['nama_instansi']),0,1,'C');
+    // $pdf->SetFont('Arial','B',10);
+    // $pdf->Cell(0,7,$row_site['alamat'].', Telp '.$row_site['no_telp'],0,1,'C');
+    // $pdf->Cell(0,7,$row_site['website'],0,1,'C');
+    // $pdf->SetLineWidth(1);
+    // $pdf->Line(10,31,206,31);
+    // $pdf->SetLineWidth(0);
+    // $pdf->Line(10,32,206,32);
+
+    $pdf->AddPage();
+
+    // --- Pengaturan Posisi & Ukuran ---
+    $pageWidth = $pdf->GetPageWidth();
+    $leftMargin = 15;
+    $rightMargin = 15;
+
+    // Posisi Y awal untuk semua elemen header
+    $yPos = 10;
+
+    // --- Bagian Kiri: Logo Utama & Teks Instansi ---
+    $logoUtama = '../../apps/pengaturan/logo/' . $row_site['logo'];
+    $logoUtamaWidth = 25; // Lebar logo utama dalam mm
+    $pdf->Image($logoUtama, $leftMargin, $yPos, $logoUtamaWidth);
+
+    // Set posisi X untuk blok teks, di sebelah kanan logo
+    $textBlockX = $leftMargin + $logoUtamaWidth + 3; // 3mm spasi
+    $pdf->SetXY($textBlockX, $yPos + 2); // Sedikit turun agar sejajar
+
+    // Tulis blok teks baris per baris
+    $pdf->SetFont('Arial', 'BI', 16);
+    $pdf->Cell(0, 7, 'BADAN PUSAT STATISTIK', 0, 1);
+    $pdf->SetX($textBlockX); // Pindahkan kursor kembali ke posisi X yang benar
+    $pdf->Cell(0, 7, 'KABUPATEN MUARA ENIM', 0, 1);
+
+    $pdf->SetFont('Arial', '', 8);
+    $pdf->SetX($textBlockX);
+    $pdf->Cell(0, 4, 'Jalan Bambang Utoyo No.44, Muara Enim', 0, 1);
+    $pdf->SetX($textBlockX);
+    $pdf->Cell(0, 4, 'Homepage : https://muaraenimkab.bps.go.id | Email : bps1603@bps.go.id', 0, 1);
+
+
+    // --- Bagian Kanan: Logo Tambahan (Sensus & BerAKHLAK) ---
+    // $logoSensus = '../../apps/pengaturan/logo/logo.png'; // Pastikan nama file ini benar
+    $logoBerakhlak = '../../apps/pengaturan/logo/Logo_Berakhlak.png'; // Pastikan nama file ini benar
+
+    // $logoSensusWidth = 28;
+    $logoBerakhlakWidth = 40;
+    // $spasiAntarLogo = 3;
+
+    // // Hitung posisi X untuk logo paling kanan agar rata kanan
+    $berakhlakX = $pageWidth - $rightMargin - $logoBerakhlakWidth;
+    // $sensusX = $berakhlakX - $spasiAntarLogo - $logoSensusWidth;
+
+    // $pdf->Image($logoSensus, $sensusX, $yPos, $logoSensusWidth);
+    $pdf->Image($logoBerakhlak, $berakhlakX, $yPos, $logoBerakhlakWidth);
+
     $pdf->SetLineWidth(1);
-    $pdf->Line(10,31,206,31);
+    $pdf->Line(10, 40, 206, 40);
     $pdf->SetLineWidth(0);
-    $pdf->Line(10,32,206,32);
+    $pdf->Line(10, 41, 206, 41);
+
+    $pdf->Ln(5);
 
     // Judul Laporan
     $pdf->SetFont('Arial','B',14);
@@ -127,12 +181,12 @@ if (isset($_POST['cetak']) && isset($_SESSION['level']) && $_SESSION['level'] ==
     $pdf->SetFont('Arial','',10);
     $pdf->Cell(0,15,'',0,1,'C');
     $pdf->Cell(130);
-    $pdf->Cell(60,6,'Palembang, '.date('d').' '.MendapatkanBulan(date('m')).' '.date('Y'),0,1,'C');
+    $pdf->Cell(60,6,'Muara Enim, '.date('d').' '.MendapatkanBulan(date('m')).' '.date('Y'),0,1,'C');
     $pdf->Cell(130);
     $pdf->Cell(60,6,'Pembimbing Magang',0,1,'C');
     $pdf->Cell(0,20,'',0,1,'C');
     $pdf->Cell(130);
-    $pdf->Cell(60,6,$pembimbing,0,1,'C');
+    $pdf->Cell(60,6,'................',0,1,'C');
 
     $pdf->Output();
 

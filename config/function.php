@@ -356,7 +356,7 @@ function hitungJarak($lat1, $lon1, $lat2, $lon2) {
 }
 
 function kirimNotifikasiWA($nomor_tujuan, $pesan, $url_gambar = null) {
-    $token = "8oJ5sFqnfDwmT9n1ir7e"; // Token Fonnte Anda
+    $token = "1@buyoro7EK7Bi-YsXeo"; // Token Fonnte Anda
 
     // Siapkan data dalam bentuk array PHP
     $payload = [

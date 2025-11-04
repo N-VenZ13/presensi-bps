@@ -112,7 +112,7 @@ if ($aksi == 'masuk_hadir' && !$sudah_ada_data) {
             $pesan = str_replace(array_keys($data_pengganti), array_values($data_pengganti), $template_mentah);
 
             // 4. Tambahkan ID Pesan acak untuk testing (opsional)
-            $pesan .= "\n\n(ID Pesan: #" . rand(1000, 9999) . ")";
+            // $pesan .= "\n\n(ID Pesan: #" . rand(1000, 9999) . ")";
 
             // 5. Panggil fungsi pengirim (tetap sama)
             // kirimNotifikasiWA($data_mahasiswa['no_telp_ortu'], $pesan, $url_gambar_publik);
