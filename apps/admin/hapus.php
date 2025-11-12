@@ -1,29 +1,33 @@
 <?php
-    //Memulai Session
-    session_start();
+session_start();
+if (isset($_SESSION['level']) && $_SESSION['level'] == 'Admin') {
 
-    //Koneksi database
     include '../../config/database.php';
-    //Memulai admin
-    mysqli_query($kon,"START TRANSACTION");
+    
+    $id_admin = (int)$_GET["id_admin"];
+    $kode_admin = $_GET["kode_admin"];
 
-    $id_admin=$_GET['id_admin'];
-    $kode_admin=$_GET['kode_admin'];
+    mysqli_query($kon, "START TRANSACTION");
 
-    //Menghapus data dalam tabel admin
-    $hapus_admin=mysqli_query($kon,"DELETE FROM tbl_admin WHERE id_admin='$id_admin'");
-    //Menghapus data dalam tabel pengguna
-    $hapus_pengguna=mysqli_query($kon,"DELETE FROM tbl_user WHERE kode_pengguna='$kode_admin'");
+    // Hapus dari tbl_admin
+    $stmt1 = mysqli_prepare($kon, "DELETE FROM tbl_admin WHERE id_admin=?");
+    mysqli_stmt_bind_param($stmt1, "i", $id_admin);
+    $hapus_admin = mysqli_stmt_execute($stmt1);
 
-    //Kondisi apakah berhasil atau tidak dalam mengeksekusi query diatas
-    if ($hapus_admin and $hapus_pengguna) {
-        mysqli_query($kon,"COMMIT");
+    // [PERBAIKAN] Hapus juga dari tbl_user
+    $stmt2 = mysqli_prepare($kon, "DELETE FROM tbl_user WHERE kode_pengguna=?");
+    mysqli_stmt_bind_param($stmt2, "s", $kode_admin);
+    $hapus_user = mysqli_stmt_execute($stmt2);
+
+    if ($hapus_admin && $hapus_user) {
+        mysqli_query($kon, "COMMIT");
         header("Location:../../index.php?page=admin&hapus=berhasil");
-    }
-    else {
-        mysqli_query($kon,"ROLLBACK");
+    } else {
+        mysqli_query($kon, "ROLLBACK");
         header("Location:../../index.php?page=admin&hapus=gagal");
-
     }
 
+} else {
+    header("Location:../../index.php?page=admin&hapus=gagal");
+}
 ?>

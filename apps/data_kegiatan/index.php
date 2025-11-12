@@ -231,7 +231,7 @@ include 'config/function.php';
     $('.cetak_kegiatan').on('click', function() {
         var id_mahasiswa = $(this).attr("id_mahasiswa");
         $.ajax({
-            url: 'apps/data_kegiatan/cetak.php',
+            url: 'apps/data_kegiatan/cetak_form.php',
             method: 'POST',
             data: {
                 id_mahasiswa: id_mahasiswa

@@ -2,7 +2,7 @@
     session_start();
 ?>
 
-<form action="apps/cetak/cetak_kegiatan.php" method="GET" enctype="multipart/form-data">
+<form action="apps/cetak/cetak_kegiatan_a.php" method="GET" enctype="multipart/form-data">
     <div class="row">
     <div class="col-sm-6">
         <div class="form-group">

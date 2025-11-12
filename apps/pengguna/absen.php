@@ -128,9 +128,16 @@ $tanggal_indonesia = MendapatkanHari(date('l')) . ", " . date('d') . " " . Menda
             <?php endif; ?>
         <?php else: // Kondisi utama: Belum Absen (termasuk Izin Ditolak) 
         ?>
-            <?php if ($waktu_sekarang_obj >= $masuk_mulai_obj && $waktu_sekarang_obj <= $masuk_akhir_obj): ?>
+
+            <!-- ======================================================= -->
+            <!-- [BAGIAN YANG DIUBAH] -->
+            <!-- ======================================================= -->
+            <?php
+            // Logika baru: Tombol absen akan muncul dari jam 'masuk_mulai' hingga sesaat sebelum jam 'pulang_mulai'
+            if ($waktu_sekarang_obj >= $masuk_mulai_obj && $waktu_sekarang_obj < $pulang_mulai_obj):
+            ?>
                 <p class="lead">Silakan lakukan absensi untuk hari ini.</p>
-                <!-- Tombol-tombol Aksi -->
+                <!-- Tombol-tombol Aksi (Hadir & Izin) -->
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                     <button type="button" class="btn btn-success btn-lg px-4 gap-3" data-bs-toggle="modal" data-bs-target="#modalAbsenHadir">
                         <i class="bi bi-camera-fill"></i> Hadir
@@ -139,9 +146,23 @@ $tanggal_indonesia = MendapatkanHari(date('l')) . ", " . date('d') . " " . Menda
                         <i class="bi bi-envelope-fill"></i> Ajukan Izin
                     </button>
                 </div>
+
+                <!-- Pesan informatif tentang keterlambatan -->
+                <?php if ($waktu_sekarang_obj > $masuk_akhir_obj): ?>
+                    <div class="form-text text-danger mt-3">
+                        Perhatian: Anda melakukan absensi di luar jam tepat waktu (setelah <?php echo date('H:i', strtotime($setting['masuk_akhir'])); ?>). Kehadiran Anda akan ditandai sebagai "Terlambat".
+                    </div>
+                <?php endif; ?>
+
             <?php else: ?>
-                <p class="lead mt-4">Waktu absensi masuk adalah antara jam <?php echo date('H:i', strtotime($setting['masuk_mulai'])); ?> - <?php echo date('H:i', strtotime($setting['masuk_akhir'])); ?></p>
+                <!-- Pesan jika waktu sudah melewati jam pulang atau belum waktunya masuk -->
+                <p class="lead mt-4">Waktu untuk melakukan absensi masuk telah berakhir atau belum dimulai.</p>
+                <p class="text-muted">Jadwal absensi masuk adalah dari jam <?php echo date('H:i', strtotime($setting['masuk_mulai'])); ?> hingga sebelum jam pulang.</p>
             <?php endif; ?>
+            <!-- ======================================================= -->
+            <!-- AKHIR BAGIAN YANG DIUBAH -->
+            <!-- ======================================================= -->
+
         <?php endif; ?>
     </div>
 </div>
