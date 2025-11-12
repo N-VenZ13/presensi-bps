@@ -4,8 +4,8 @@ Sistem Presensi & Aktivitas Magang (SIMANG) adalah aplikasi berbasis web yang di
 
 Proyek ini merupakan hasil pengembangan ulang dan penambahan fitur signifikan dari sebuah sistem absensi sederhana, yang kini dilengkapi dengan verifikasi kehadiran canggih dan alur kerja administratif yang lengkap.
 
-![Screenshot Dashboard](path/to/your/screenshot_dashboard.jpg)
-*(Ganti `path/to/your/screenshot_dashboard.jpg` dengan link ke screenshot aplikasi Anda)*
+![Screenshot Dashboard](dashboard.png)
+
 
 ---
 
